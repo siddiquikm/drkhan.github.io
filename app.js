@@ -109,8 +109,8 @@ function setupFileUpload() {
         e.preventDefault();
         dropZone.classList.remove('dragover');
         const file = e.dataTransfer.files[0];
-        if (file && file.name.endsWith('.csv')) {
-            parseCSVFile(file);
+        if (file) {
+            handleFileUpload(file);
         }
     });
 }
@@ -118,8 +118,124 @@ function setupFileUpload() {
 function handleFileSelect(e) {
     const file = e.target.files[0];
     if (file) {
-        parseCSVFile(file);
+        handleFileUpload(file);
     }
+}
+
+// Detect file type and route to appropriate handler
+function handleFileUpload(file) {
+    const fileName = file.name.toLowerCase();
+
+    if (fileName.endsWith('.zip')) {
+        handleZipFile(file);
+    } else if (fileName.endsWith('.csv')) {
+        parseCSVFile(file);
+    } else {
+        alert('Please upload a CSV or ZIP file.');
+    }
+}
+
+// Handle ZIP file extraction
+async function handleZipFile(file) {
+    try {
+        // Show loading state
+        const dropZone = document.getElementById('dropZone');
+        const originalContent = dropZone.innerHTML;
+        dropZone.innerHTML = '<p>Extracting ZIP file...</p>';
+
+        const zip = await JSZip.loadAsync(file);
+
+        // Look for glucose_readings.csv (required)
+        let glucoseFile = zip.file('glucose_readings.csv');
+
+        // If not found at root, search in subdirectories
+        if (!glucoseFile) {
+            const files = Object.keys(zip.files);
+            const glucosePath = files.find(f => f.endsWith('glucose_readings.csv'));
+            if (glucosePath) {
+                glucoseFile = zip.file(glucosePath);
+            }
+        }
+
+        if (!glucoseFile) {
+            dropZone.innerHTML = originalContent;
+            alert('ZIP file must contain glucose_readings.csv');
+            return;
+        }
+
+        // Extract and parse glucose data
+        dropZone.innerHTML = '<p>Processing glucose data...</p>';
+        const glucoseContent = await glucoseFile.async('string');
+
+        // Parse glucose CSV content
+        Papa.parse(glucoseContent, {
+            header: true,
+            dynamicTyping: true,
+            skipEmptyLines: true,
+            complete: async (results) => {
+                if (results.data && results.data.length > 0) {
+                    processData(results.data);
+
+                    // Now look for activity_logs.csv (optional - for weight data)
+                    let activityFile = zip.file('activity_logs.csv');
+
+                    // If not found at root, search in subdirectories
+                    if (!activityFile) {
+                        const files = Object.keys(zip.files);
+                        const activityPath = files.find(f => f.endsWith('activity_logs.csv'));
+                        if (activityPath) {
+                            activityFile = zip.file(activityPath);
+                        }
+                    }
+
+                    if (activityFile) {
+                        const activityContent = await activityFile.async('string');
+                        parseWeightDataFromContent(activityContent);
+                    }
+                } else {
+                    dropZone.innerHTML = originalContent;
+                    alert('No glucose data found in the ZIP file.');
+                }
+            },
+            error: (error) => {
+                dropZone.innerHTML = originalContent;
+                alert('Error parsing glucose data: ' + error.message);
+            }
+        });
+
+    } catch (error) {
+        alert('Error reading ZIP file: ' + error.message);
+    }
+}
+
+// Parse weight data from CSV content string (for ZIP extraction)
+function parseWeightDataFromContent(csvContent) {
+    Papa.parse(csvContent, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+            // Filter for weight entries and parse
+            weightData = results.data
+                .filter(row => row.category === 'Weight' && row.notes)
+                .map(row => {
+                    const weightMatch = row.notes.match(/[\d.]+/);
+                    const weight = weightMatch ? parseFloat(weightMatch[0]) : null;
+                    return {
+                        timestamp: new Date(row.start_at),
+                        weight: weight ? parseFloat(weight.toFixed(1)) : null
+                    };
+                })
+                .filter(row => row.weight !== null && !isNaN(row.timestamp.getTime()))
+                .sort((a, b) => a.timestamp - b.timestamp);
+
+            if (weightData.length > 0) {
+                showWeightSection();
+            }
+        },
+        error: (error) => {
+            console.log('Could not parse activity log:', error.message);
+        }
+    });
 }
 
 function parseCSVFile(file) {

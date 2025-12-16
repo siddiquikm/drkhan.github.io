@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
@@ -64,13 +65,14 @@
                     </svg>
                 </div>
                 <h2>Upload Signos CGM Data</h2>
-                <p>Upload your glucose_readings.csv file exported from Signos</p>
+                <p>Upload your Signos ZIP export or glucose_readings.csv file</p>
                 <div class="upload-area" id="dropZone">
-                    <input type="file" id="fileInput" accept=".csv" hidden>
-                    <p>Drag and drop your CSV file here, or</p>
+                    <input type="file" id="fileInput" accept=".csv,.zip" hidden>
+                    <p>Drag and drop your ZIP or CSV file here, or</p>
                     <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
                         Browse Files
                     </button>
+                    <p class="upload-hint">ZIP files will auto-load glucose and weight data</p>
                 </div>
 
                 <!-- Export Instructions -->

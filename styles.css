@@ -236,6 +236,14 @@ body {
     color: var(--text-secondary);
 }
 
+.upload-hint {
+    margin-top: 12px !important;
+    margin-bottom: 0 !important;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
 .upload-note {
     display: flex;
     align-items: center;
