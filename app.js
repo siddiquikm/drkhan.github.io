@@ -18,7 +18,76 @@ const TARGETS = {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     setupFileUpload();
+    setupModalListeners();
 });
+
+// ============================================
+// Modal, Tab, and UI Functions
+// ============================================
+
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+}
+
+function setupModalListeners() {
+    // Close modal when clicking outside content
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal(modal.id);
+            }
+        });
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal.show').forEach(modal => {
+                closeModal(modal.id);
+            });
+        }
+    });
+}
+
+function toggleExportHelp() {
+    const instructions = document.getElementById('exportInstructions');
+    const toggle = document.querySelector('.help-toggle');
+
+    if (instructions && toggle) {
+        instructions.classList.toggle('show');
+        toggle.classList.toggle('active');
+    }
+}
+
+function switchTab(tabName) {
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    // Update tab content
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+
+    const tabContent = document.getElementById(tabName + 'Tab');
+    if (tabContent) {
+        tabContent.classList.add('active');
+    }
+}
 
 // File Upload Handling
 function setupFileUpload() {
@@ -207,6 +276,53 @@ function applyComparison() {
     }
 
     renderDashboard();
+
+    // Update health insights if weight section is visible
+    if (weightData.length > 0) {
+        updateHealthInsightsPeriod();
+    }
+}
+
+// Update health insights period indicator and recalculate if >= 14 days
+function updateHealthInsightsPeriod() {
+    const periodValueEl = document.getElementById('insightsPeriodValue');
+    const periodNoteEl = document.getElementById('periodNote');
+
+    if (!periodValueEl) return;
+
+    // Calculate days in current period
+    const periodDays = Math.ceil((currentPeriodData.length > 0 ?
+        (currentPeriodData[currentPeriodData.length - 1].timestamp - currentPeriodData[0].timestamp) / (24 * 60 * 60 * 1000) : 0)) + 1;
+
+    // Get the active period button text
+    const activeBtn = document.querySelector('.btn-group .btn.active');
+    let periodLabel = activeBtn ? activeBtn.textContent : 'All Data';
+
+    // If custom dates, show the date range
+    if (periodLabel === 'All Data' && currentPeriodData.length !== allData.length) {
+        const start = currentPeriodData[0]?.timestamp;
+        const end = currentPeriodData[currentPeriodData.length - 1]?.timestamp;
+        if (start && end) {
+            periodLabel = `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+        }
+    }
+
+    periodValueEl.textContent = periodLabel;
+
+    // Update note based on days
+    if (periodDays < 14) {
+        periodNoteEl.textContent = `(${periodDays} days - need 14+ for reliable GMI)`;
+        periodNoteEl.className = 'period-note period-warning';
+    } else {
+        periodNoteEl.textContent = `(${periodDays} days of data)`;
+        periodNoteEl.className = 'period-note';
+    }
+
+    // Recalculate insights with current period data (if >= 14 days, use period; else use all data)
+    const dataToUse = periodDays >= 14 ? currentPeriodData : allData;
+    calculateGMI(dataToUse);
+    calculateCVInsight(dataToUse);
+    calculateFastingGlucoseInsight(dataToUse);
 }
 
 // Render Dashboard
@@ -1340,19 +1456,24 @@ function generateChartInsight(weightPoints, glucosePoints, weightTrend, glucoseT
 // ============================================
 
 function renderHealthInsights() {
-    calculateGMI();
-    calculateCVInsight();
-    calculateFastingGlucoseInsight();
+    // Initial render uses all data
+    calculateGMI(allData);
+    calculateCVInsight(allData);
+    calculateFastingGlucoseInsight(allData);
     calculateRiskReduction();
     analyzePatterns();
+
+    // Initialize period indicator
+    updateHealthInsightsPeriod();
 }
 
 // GMI (Glucose Management Indicator) - Estimated A1C
 // Formula: GMI (%) = 3.31 + 0.02392 × (mean glucose in mg/dL)
-function calculateGMI() {
-    if (allData.length === 0) return;
+function calculateGMI(data) {
+    data = data || allData;
+    if (data.length === 0) return;
 
-    const meanGlucose = allData.reduce((sum, d) => sum + d.glucose, 0) / allData.length;
+    const meanGlucose = data.reduce((sum, d) => sum + d.glucose, 0) / data.length;
     const gmi = 3.31 + (0.02392 * meanGlucose);
 
     document.getElementById('gmiValue').textContent = gmi.toFixed(1);
@@ -1376,10 +1497,11 @@ function calculateGMI() {
 }
 
 // CV% for Health Insights (different element IDs)
-function calculateCVInsight() {
-    if (allData.length === 0) return;
+function calculateCVInsight(data) {
+    data = data || allData;
+    if (data.length === 0) return;
 
-    const values = allData.map(d => d.glucose);
+    const values = data.map(d => d.glucose);
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
     const squaredDiffs = values.map(v => Math.pow(v - mean, 2));
     const variance = squaredDiffs.reduce((a, b) => a + b, 0) / values.length;
@@ -1406,10 +1528,11 @@ function calculateCVInsight() {
 }
 
 // Fasting Glucose for Health Insights
-function calculateFastingGlucoseInsight() {
-    if (allData.length === 0) return;
+function calculateFastingGlucoseInsight(data) {
+    data = data || allData;
+    if (data.length === 0) return;
 
-    const fastingReadings = allData.filter(d => {
+    const fastingReadings = data.filter(d => {
         const hour = d.timestamp.getHours();
         return hour >= 4 && hour <= 7;
     });
