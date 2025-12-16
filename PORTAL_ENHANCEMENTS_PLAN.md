@@ -2,7 +2,7 @@
 
 ## Overview
 
-This plan adds user-friendly features including a catchy brand name, navigation tabs, data export instructions, usage guides, and a Signos referral button.
+This plan adds user-friendly features including a catchy brand name, navigation tabs, data export instructions, usage guides, Signos referral button, **unofficial portal disclaimer**, **Privacy Policy**, and **Terms of Use** pages.
 
 ---
 
@@ -333,6 +333,316 @@ Add export instructions below upload area:
 3. **Mobile-First**: All modals work on mobile
 4. **Accessible**: Proper focus management, keyboard navigation
 5. **Privacy Focus**: Emphasize local processing throughout
+
+---
+
+## 11. Unofficial Portal Disclaimer
+
+### Prominent Disclaimer Banner
+Add a clear disclaimer that this is NOT an official Signos product.
+
+**Location:**
+- Subtle banner below header (always visible)
+- Repeated in footer
+- Included in "Learn More" modal
+
+**Disclaimer Text:**
+```
+⚠️ This is an independent, community-created tool and is NOT affiliated with,
+endorsed by, or officially supported by Signos, Inc. Signos® is a registered
+trademark of Signos, Inc. This portal was created by Signos users to help
+share CGM data with healthcare providers.
+```
+
+**Styling:**
+- Subtle background (light yellow/amber or light gray)
+- Small font size, non-intrusive but visible
+- Icon to draw attention
+
+---
+
+## 12. Privacy Policy Page (`privacy.html`)
+
+### Content:
+
+```markdown
+# Privacy Policy
+
+**Last Updated:** [Current Date]
+
+## About This Portal
+
+Signos Physician Portal is an independent, community-created tool that is NOT
+affiliated with, endorsed by, or officially supported by Signos, Inc.
+
+## Data Collection & Processing
+
+### What We DO NOT Collect:
+- We do NOT collect, store, transmit, or have access to any of your data
+- We do NOT use cookies for tracking
+- We do NOT use analytics services
+- We do NOT have servers that receive your health information
+
+### How Your Data is Processed:
+- **100% Client-Side Processing**: All data analysis happens entirely within
+  your web browser
+- **No Upload**: Your CSV files are never uploaded to any server
+- **No Storage**: Your data is not stored anywhere - it exists only in your
+  browser's memory while you use the portal
+- **Session Only**: When you close or refresh the page, all data is cleared
+
+### Technical Details:
+- JavaScript processes your files locally using the File API
+- Charts and calculations are generated in your browser
+- PDF exports are created client-side using html2pdf.js
+- No network requests are made with your health data
+
+## Third-Party Services
+
+### What We Use:
+- **Chart.js** (charts) - No data sent to Chart.js servers
+- **PapaParse** (CSV parsing) - No data sent externally
+- **html2pdf.js** (PDF generation) - No data sent externally
+- **GitHub Pages** (hosting) - Only serves static files, no data collection
+
+### External Links:
+This portal contains links to:
+- Signos Help Center (support.signos.com)
+- Signos referral program (refer.signos.com)
+
+These external sites have their own privacy policies.
+
+## Your Rights
+
+Since we don't collect any data:
+- There is no data to request, modify, or delete
+- You have complete control - your data stays on your device
+
+## Children's Privacy
+
+This portal is intended for adults managing their health data. We do not
+knowingly process data from children under 13.
+
+## Changes to This Policy
+
+We may update this Privacy Policy. Changes will be reflected in the
+"Last Updated" date.
+
+## Contact
+
+For questions about this privacy policy, please open an issue on our
+GitHub repository.
+
+---
+
+**Remember:** This is NOT an official Signos product. For Signos's privacy
+practices, please visit [signos.com/privacy](https://www.signos.com/privacy).
+```
+
+---
+
+## 13. Terms of Use Page (`terms.html`)
+
+### Content:
+
+```markdown
+# Terms of Use
+
+**Last Updated:** [Current Date]
+
+## Acceptance of Terms
+
+By accessing and using Signos Physician Portal ("the Portal"), you agree
+to these Terms of Use.
+
+## About This Portal
+
+### Independent Project
+This Portal is an **independent, community-created tool**. It is:
+- NOT affiliated with Signos, Inc.
+- NOT endorsed by Signos, Inc.
+- NOT officially supported by Signos, Inc.
+
+Signos® is a registered trademark of Signos, Inc.
+
+### Purpose
+This Portal is designed to help Signos users visualize their CGM data and
+share it with healthcare providers. It is provided free of charge as a
+community resource.
+
+## Disclaimer of Warranties
+
+THE PORTAL IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO:
+- Accuracy of calculations or visualizations
+- Fitness for a particular purpose
+- Non-infringement
+- Reliability or availability
+
+## Medical Disclaimer
+
+### NOT Medical Advice
+The Portal and its outputs are for **informational purposes only** and do
+NOT constitute:
+- Medical advice
+- Diagnosis
+- Treatment recommendations
+- A substitute for professional medical care
+
+### Consult Your Healthcare Provider
+- Always consult qualified healthcare professionals for medical decisions
+- Do not rely solely on Portal outputs for health decisions
+- CGM data interpretation requires clinical context
+- Health insights shown are educational estimates, not diagnoses
+
+### Evidence-Based but Not Personalized
+Health metrics and risk estimates are based on population-level research
+and may not apply to your individual situation. Factors such as genetics,
+medications, and other health conditions affect individual outcomes.
+
+## Limitation of Liability
+
+### No Liability for:
+- Health decisions made based on Portal outputs
+- Inaccuracies in data visualization or calculations
+- Technical errors or service interruptions
+- Data loss (though no data is stored)
+- Any damages arising from use of the Portal
+
+### Maximum Liability
+To the fullest extent permitted by law, the creators and maintainers of
+this Portal shall not be liable for any indirect, incidental, special,
+consequential, or punitive damages.
+
+## User Responsibilities
+
+By using the Portal, you agree to:
+- Use it only for lawful purposes
+- Not attempt to reverse engineer or exploit the Portal
+- Not misrepresent Portal outputs as official Signos reports
+- Understand that you are responsible for your health decisions
+
+## Intellectual Property
+
+### Portal Code
+The Portal source code is available on GitHub under applicable open source
+licenses.
+
+### Trademarks
+- Signos® is a trademark of Signos, Inc.
+- Use of the Signos name is for descriptive purposes only
+- This Portal does not claim any affiliation with Signos, Inc.
+
+## Third-Party Links
+
+The Portal contains links to third-party websites (Signos, referral
+programs). We are not responsible for the content or practices of these
+external sites.
+
+## Modifications
+
+We reserve the right to modify these Terms at any time. Continued use of
+the Portal after changes constitutes acceptance of new Terms.
+
+## Governing Law
+
+These Terms shall be governed by applicable laws. Any disputes shall be
+resolved in appropriate courts of jurisdiction.
+
+## Severability
+
+If any provision of these Terms is found unenforceable, the remaining
+provisions will continue in effect.
+
+## Contact
+
+For questions about these Terms, please open an issue on our GitHub
+repository.
+
+---
+
+**Remember:** This is NOT an official Signos product. For Signos's terms
+of service, please visit [signos.com/terms](https://www.signos.com/terms).
+```
+
+---
+
+## 14. Updated Footer Design
+
+### New Footer Structure:
+```html
+<footer class="footer">
+  <!-- Unofficial Disclaimer -->
+  <div class="footer-disclaimer">
+    <p>
+      <strong>⚠️ Unofficial Tool:</strong> This portal is an independent,
+      community-created project and is NOT affiliated with, endorsed by,
+      or officially supported by Signos, Inc.
+    </p>
+  </div>
+
+  <!-- Main Footer Content -->
+  <div class="footer-content">
+    <div class="footer-main">
+      <p>Signos Physician Portal | Data processed locally - No information sent to servers</p>
+      <p class="medical-disclaimer">
+        This tool is for informational purposes only. CGM data should be
+        interpreted in consultation with a healthcare provider.
+      </p>
+    </div>
+
+    <!-- Legal Links -->
+    <div class="footer-legal">
+      <a href="privacy.html" target="_blank">Privacy Policy</a>
+      <span class="separator">|</span>
+      <a href="terms.html" target="_blank">Terms of Use</a>
+    </div>
+
+    <!-- Referral -->
+    <div class="footer-referral">
+      <a href="https://refer.signos.com/xtek5h7w" target="_blank" class="referral-link">
+        New to Signos? Get 30% Off →
+      </a>
+    </div>
+  </div>
+
+  <!-- Copyright -->
+  <div class="footer-copyright">
+    <p>Signos® is a registered trademark of Signos, Inc.</p>
+  </div>
+</footer>
+```
+
+---
+
+## 15. Updated Implementation Checklist
+
+### HTML Changes:
+- [ ] Update title and header branding
+- [ ] Add unofficial disclaimer banner below header
+- [ ] Add navigation bar with three tabs
+- [ ] Create "Learn More" modal
+- [ ] Create "How to Use" modal with Patient/Physician tabs
+- [ ] Add referral button
+- [ ] Add export instructions to upload section
+- [ ] Update footer with disclaimer, legal links, and referral
+- [ ] **Create `privacy.html` page**
+- [ ] **Create `terms.html` page**
+
+### CSS Changes:
+- [ ] Style navigation bar
+- [ ] Style modal system
+- [ ] Style referral button (accent color)
+- [ ] Style export instructions toggle
+- [ ] Style disclaimer banner
+- [ ] Style footer sections
+- [ ] **Style legal pages (privacy.html, terms.html)**
+- [ ] Responsive design for all new elements
+
+### JavaScript Changes:
+- [ ] Modal open/close functions
+- [ ] Export instructions toggle
+- [ ] Tab switching in How to Use modal
 
 ---
 
