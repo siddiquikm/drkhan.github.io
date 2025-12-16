@@ -18,7 +18,76 @@ const TARGETS = {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     setupFileUpload();
+    setupModalListeners();
 });
+
+// ============================================
+// Modal, Tab, and UI Functions
+// ============================================
+
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+}
+
+function setupModalListeners() {
+    // Close modal when clicking outside content
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal(modal.id);
+            }
+        });
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal.show').forEach(modal => {
+                closeModal(modal.id);
+            });
+        }
+    });
+}
+
+function toggleExportHelp() {
+    const instructions = document.getElementById('exportInstructions');
+    const toggle = document.querySelector('.help-toggle');
+
+    if (instructions && toggle) {
+        instructions.classList.toggle('show');
+        toggle.classList.toggle('active');
+    }
+}
+
+function switchTab(tabName) {
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    // Update tab content
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+
+    const tabContent = document.getElementById(tabName + 'Tab');
+    if (tabContent) {
+        tabContent.classList.add('active');
+    }
+}
 
 // File Upload Handling
 function setupFileUpload() {

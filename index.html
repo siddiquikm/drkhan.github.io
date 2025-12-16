@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CGM Portal - Physician Dashboard</title>
+    <title>Signos Physician Portal - Share CGM Data with Your Doctor</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
@@ -19,10 +19,17 @@
                     <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
                     </svg>
-                    <h1>CGM Portal</h1>
+                    <h1>Signos Physician Portal</h1>
                 </div>
-                <div class="header-subtitle">Continuous Glucose Monitoring for Weight Loss</div>
+                <div class="header-subtitle">Share your CGM data with your healthcare provider</div>
             </div>
+            <nav class="header-nav">
+                <button class="nav-btn" onclick="openModal('learnMoreModal')">Learn More</button>
+                <button class="nav-btn" onclick="openModal('howToUseModal')">How to Use</button>
+                <a href="https://refer.signos.com/xtek5h7w" target="_blank" rel="noopener noreferrer" class="nav-btn nav-btn-referral">
+                    Get 30% Off Signos
+                </a>
+            </nav>
             <div class="header-actions">
                 <button id="exportPdfBtn" class="btn btn-secondary" disabled>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -35,6 +42,16 @@
                 </button>
             </div>
         </header>
+
+        <!-- Unofficial Disclaimer Banner -->
+        <div class="disclaimer-banner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>This is an independent, community-created tool and is <strong>NOT</strong> affiliated with, endorsed by, or officially supported by Signos, Inc.</span>
+        </div>
 
         <!-- Upload Section -->
         <section id="uploadSection" class="upload-section">
@@ -55,6 +72,48 @@
                         Browse Files
                     </button>
                 </div>
+
+                <!-- Export Instructions -->
+                <div class="export-help">
+                    <button class="help-toggle" onclick="toggleExportHelp()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        How do I export my Signos data?
+                        <svg class="toggle-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="export-instructions" id="exportInstructions">
+                        <div class="export-method">
+                            <strong>Via Signos App (Recommended):</strong>
+                            <ol>
+                                <li>Open Signos app → Menu → Settings</li>
+                                <li>Tap "Export Data" under General</li>
+                                <li>Select the "Email" tab</li>
+                                <li>Tap "Export Now"</li>
+                                <li>Check your email for the CSV files</li>
+                            </ol>
+                        </div>
+                        <div class="export-method">
+                            <strong>Request CSV from Support:</strong>
+                            <p>Email <a href="mailto:support@signos.com">support@signos.com</a> and request a CSV export of your raw glucose and activity data.</p>
+                        </div>
+                        <div class="export-files">
+                            <strong>Files needed:</strong>
+                            <ul>
+                                <li><code>glucose_readings.csv</code> - CGM glucose data (required)</li>
+                                <li><code>activity_logs.csv</code> - Weight entries (optional)</li>
+                            </ul>
+                        </div>
+                        <a href="https://support.signos.com/hc/en-us/articles/26157421018772-How-do-I-export-and-download-my-data" target="_blank" rel="noopener noreferrer" class="help-link">
+                            View Signos Help Article →
+                        </a>
+                    </div>
+                </div>
+
                 <div class="upload-note">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"></circle>
@@ -605,9 +664,299 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>CGM Portal for Physician Review | Data processed locally - No information sent to servers</p>
-            <p class="disclaimer">This tool is for informational purposes only. CGM data should be interpreted in consultation with a healthcare provider.</p>
+            <div class="footer-disclaimer">
+                <p><strong>Unofficial Tool:</strong> This portal is an independent, community-created project and is NOT affiliated with, endorsed by, or officially supported by Signos, Inc.</p>
+            </div>
+            <div class="footer-content">
+                <div class="footer-main">
+                    <p>Signos Physician Portal | Data processed locally - No information sent to servers</p>
+                    <p class="disclaimer">This tool is for informational purposes only. CGM data should be interpreted in consultation with a healthcare provider.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-legal">
+                        <a href="privacy.html" target="_blank">Privacy Policy</a>
+                        <span class="separator">|</span>
+                        <a href="terms.html" target="_blank">Terms of Use</a>
+                    </div>
+                    <div class="footer-referral">
+                        <a href="https://refer.signos.com/xtek5h7w" target="_blank" rel="noopener noreferrer" class="referral-link">
+                            New to Signos? Get 30% Off →
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-copyright">
+                <p>Signos® is a registered trademark of Signos, Inc.</p>
+            </div>
         </footer>
+    </div>
+
+    <!-- Learn More Modal -->
+    <div id="learnMoreModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('learnMoreModal')">&times;</button>
+            <h2>What is Signos Physician Portal?</h2>
+            <p class="modal-intro">A free, privacy-focused tool that transforms your Signos CGM data into professional reports for your healthcare provider.</p>
+
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg>
+                    </div>
+                    <h4>AGP Charts</h4>
+                    <p>Industry-standard Ambulatory Glucose Profile showing your 24-hour glucose patterns with percentile bands.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                            <polyline points="17 6 23 6 23 12"></polyline>
+                        </svg>
+                    </div>
+                    <h4>Weight Loss Metrics</h4>
+                    <p>Unlike diabetes-focused reports, we use the tighter 70-110 mg/dL optimal range for metabolic health.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </div>
+                    <h4>Long-Term Tracking</h4>
+                    <p>See glucose trends over weeks, months, and quarters with automatic comparisons.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                    </div>
+                    <h4>100% Private</h4>
+                    <p>All data processing happens in your browser. Nothing is uploaded to any server.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                    </div>
+                    <h4>Health Insights</h4>
+                    <p>Estimated A1C (GMI), cardiovascular risk indicators, disease risk reduction, and pattern analysis.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                    </div>
+                    <h4>PDF Export</h4>
+                    <p>Generate professional reports to share with your physician via email or patient portal.</p>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <h3>Why Use This Portal?</h3>
+                <div class="benefits-columns">
+                    <div class="benefits-column">
+                        <h4>For Patients</h4>
+                        <ul>
+                            <li>Show your physician objective metabolic health data</li>
+                            <li>Track progress between appointments</li>
+                            <li>Understand how lifestyle affects blood sugar</li>
+                            <li>Get evidence-based health insights</li>
+                        </ul>
+                    </div>
+                    <div class="benefits-column">
+                        <h4>For Physicians</h4>
+                        <ul>
+                            <li>Receive standardized AGP reports</li>
+                            <li>See metabolic context for weight loss patients</li>
+                            <li>Review trends without Signos app access</li>
+                            <li>Save time with pre-analyzed data</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-disclaimer">
+                <p><strong>Note:</strong> This is an independent, community-created tool and is NOT affiliated with Signos, Inc.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- How to Use Modal -->
+    <div id="howToUseModal" class="modal">
+        <div class="modal-content modal-content-large">
+            <button class="modal-close" onclick="closeModal('howToUseModal')">&times;</button>
+            <h2>How to Use This Portal</h2>
+
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" onclick="switchTab('patient')">For Patients</button>
+                    <button class="tab-btn" onclick="switchTab('physician')">For Physicians</button>
+                </div>
+
+                <!-- Patient Guide -->
+                <div id="patientTab" class="tab-content active">
+                    <div class="guide-section">
+                        <h3>Step 1: Export Your Data from Signos</h3>
+                        <ol>
+                            <li>Open the Signos app on your phone</li>
+                            <li>Go to <strong>Menu → Settings → Export Data</strong></li>
+                            <li>Select "Email" tab and tap "Export Now"</li>
+                            <li>Check your email for the data files</li>
+                        </ol>
+                        <p class="guide-tip">Alternatively, email <a href="mailto:support@signos.com">support@signos.com</a> to request a CSV export.</p>
+                    </div>
+
+                    <div class="guide-section">
+                        <h3>Step 2: Upload Your Data</h3>
+                        <ol>
+                            <li>Click "Browse Files" or drag your <code>glucose_readings.csv</code></li>
+                            <li>Wait for the dashboard to load</li>
+                            <li>(Optional) Upload <code>activity_logs.csv</code> for weight tracking</li>
+                        </ol>
+                    </div>
+
+                    <div class="guide-section">
+                        <h3>Step 3: Review Your Results</h3>
+                        <ul>
+                            <li>Check your key metrics at the top</li>
+                            <li>Review the AGP chart for daily patterns</li>
+                            <li>Look at long-term progress trends</li>
+                            <li>Explore health insights (if weight data uploaded)</li>
+                        </ul>
+                    </div>
+
+                    <div class="guide-section">
+                        <h3>Step 4: Share with Your Physician</h3>
+                        <ol>
+                            <li>Click "Export PDF" to generate a report</li>
+                            <li>Email the PDF to your doctor's office</li>
+                            <li>Upload to your patient portal, or</li>
+                            <li>Bring a printed copy to your appointment</li>
+                        </ol>
+                    </div>
+
+                    <div class="guide-tips">
+                        <h4>Tips for Your Appointment</h4>
+                        <ul>
+                            <li>Export 2-4 weeks of data before your visit</li>
+                            <li>Note any patterns you've observed</li>
+                            <li>Prepare questions about your results</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Physician Guide -->
+                <div id="physicianTab" class="tab-content">
+                    <div class="guide-section">
+                        <h3>Understanding the Context</h3>
+                        <p>This portal is designed for <strong>weight loss patients</strong> using Signos CGM, not diabetes management. Metrics use tighter targets optimized for metabolic health.</p>
+                    </div>
+
+                    <div class="guide-section">
+                        <h3>Key Metrics Explained</h3>
+                        <table class="metrics-table">
+                            <thead>
+                                <tr>
+                                    <th>Metric</th>
+                                    <th>Weight Loss Target</th>
+                                    <th>Clinical Significance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Average Glucose</td>
+                                    <td>79-100 mg/dL</td>
+                                    <td>Insulin sensitivity indicator</td>
+                                </tr>
+                                <tr>
+                                    <td>CV%</td>
+                                    <td>&lt;36% (ideal &lt;18%)</td>
+                                    <td>Glycemic stability</td>
+                                </tr>
+                                <tr>
+                                    <td>Time in Range</td>
+                                    <td>&gt;70% in 70-110</td>
+                                    <td>Metabolic health</td>
+                                </tr>
+                                <tr>
+                                    <td>Fasting Glucose</td>
+                                    <td>70-99 mg/dL</td>
+                                    <td>Morning metabolic function</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="guide-section">
+                        <h3>AGP Chart Interpretation</h3>
+                        <ul>
+                            <li><strong>Median line:</strong> Typical glucose throughout the day</li>
+                            <li><strong>Dark band (25-75th %ile):</strong> Most common glucose range</li>
+                            <li><strong>Light band (10-90th %ile):</strong> Includes occasional variations</li>
+                            <li><strong>Meal response zones:</strong> Look for post-meal peaks</li>
+                        </ul>
+                    </div>
+
+                    <div class="guide-section">
+                        <h3>Health Insights (If Weight Data Included)</h3>
+                        <ul>
+                            <li><strong>GMI:</strong> Estimates A1C from CGM mean glucose (Formula: 3.31 + 0.02392 × mean glucose)</li>
+                            <li><strong>Risk Reduction:</strong> Based on weight loss percentage (16% T2D risk reduction per kg lost)</li>
+                            <li><strong>Dawn Phenomenon:</strong> Early morning glucose rise &gt;20 mg/dL indicates insulin resistance</li>
+                        </ul>
+                    </div>
+
+                    <div class="guide-section">
+                        <h3>Clinical Recommendations by Pattern</h3>
+                        <table class="metrics-table">
+                            <thead>
+                                <tr>
+                                    <th>Pattern</th>
+                                    <th>Possible Intervention</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>High fasting glucose</td>
+                                    <td>Evening meal timing, protein-rich dinner</td>
+                                </tr>
+                                <tr>
+                                    <td>Large post-meal spikes</td>
+                                    <td>Food pairing, meal composition</td>
+                                </tr>
+                                <tr>
+                                    <td>High variability</td>
+                                    <td>Consistent meal timing, portion control</td>
+                                </tr>
+                                <tr>
+                                    <td>Dawn phenomenon</td>
+                                    <td>Evening exercise, earlier dinner</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="guide-section">
+                        <h3>Data Quality Notes</h3>
+                        <ul>
+                            <li>10-14 days minimum for reliable GMI</li>
+                            <li>More data = more reliable patterns</li>
+                            <li>Consider patient's context (illness, travel, etc.)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="app.js"></script>
