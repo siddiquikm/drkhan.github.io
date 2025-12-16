@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weight Tracking Prototype - CGM Portal</title>
+    <title>Weight Tracking Prototype v2 - CGM Portal</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -16,6 +16,7 @@
             --warning-color: #f59e0b;
             --warning-light: #fef3c7;
             --danger-color: #ef4444;
+            --weight-color: #059669;
             --bg-primary: #f8fafc;
             --bg-secondary: #ffffff;
             --bg-tertiary: #f1f5f9;
@@ -24,8 +25,8 @@
             --text-muted: #94a3b8;
             --border-color: #e2e8f0;
             --border-radius: 12px;
-            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
         }
 
         * { box-sizing: border-box; }
@@ -40,31 +41,37 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 0 20px;
         }
 
+        .hidden { display: none !important; }
+
+        /* Header - matches main portal */
         .header {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
             color: white;
             padding: 20px 24px;
-            margin: -20px -20px 24px -20px;
-            border-radius: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0 -20px 24px -20px;
         }
 
-        .header h1 {
+        .header-content h1 {
             margin: 0;
-            font-size: 1.5rem;
+            font-size: 1.75rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
-        .header p {
-            margin: 4px 0 0 0;
-            opacity: 0.9;
+        .header-subtitle {
             font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 4px;
         }
 
         .prototype-badge {
@@ -73,53 +80,10 @@
             border-radius: 20px;
             font-size: 0.75rem;
             font-weight: 600;
-            text-transform: uppercase;
+            margin-left: 12px;
         }
 
-        .upload-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-
-        .upload-card {
-            background: var(--bg-secondary);
-            border-radius: var(--border-radius);
-            padding: 24px;
-            box-shadow: var(--shadow);
-            text-align: center;
-        }
-
-        .upload-card h3 {
-            margin: 0 0 8px 0;
-            font-size: 1rem;
-        }
-
-        .upload-card p {
-            margin: 0 0 16px 0;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-        }
-
-        .upload-area {
-            border: 2px dashed var(--border-color);
-            border-radius: 8px;
-            padding: 24px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .upload-area:hover, .upload-area.dragover {
-            border-color: var(--primary-color);
-            background: var(--bg-tertiary);
-        }
-
-        .upload-area.has-file {
-            border-color: var(--success-color);
-            background: var(--success-light);
-        }
-
+        /* Buttons */
         .btn {
             display: inline-flex;
             align-items: center;
@@ -133,20 +97,153 @@
             transition: all 0.2s;
         }
 
+        .btn svg { width: 18px; height: 18px; }
+
         .btn-primary {
             background-color: var(--primary-color);
             color: white;
         }
 
-        .btn-primary:hover {
-            background-color: var(--primary-dark);
+        .btn-primary:hover { background-color: var(--primary-dark); }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--primary-color);
         }
 
-        .btn-success {
-            background-color: var(--success-color);
+        .btn-outline {
+            background: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-weight {
+            background-color: var(--weight-color);
             color: white;
         }
 
+        .btn-weight:hover { background-color: #047857; }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+
+        /* Upload Section - main CGM upload */
+        .upload-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 50vh;
+            padding: 40px 20px;
+        }
+
+        .upload-card {
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            padding: 48px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .upload-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: var(--bg-tertiary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-icon svg {
+            width: 40px;
+            height: 40px;
+            color: var(--primary-color);
+        }
+
+        .upload-card h2 {
+            margin: 0 0 8px 0;
+        }
+
+        .upload-card > p {
+            color: var(--text-secondary);
+            margin: 0 0 24px 0;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 32px;
+            transition: all 0.2s;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--primary-color);
+            background: var(--bg-tertiary);
+        }
+
+        .upload-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 24px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Patient Info Bar */
+        .patient-info-bar {
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .patient-details {
+            display: flex;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .info-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* Cards */
         .card {
             background: var(--bg-secondary);
             border-radius: var(--border-radius);
@@ -156,14 +253,41 @@
         }
 
         .card h3 {
-            margin: 0 0 20px 0;
-            font-size: 1.1rem;
             display: flex;
             align-items: center;
             gap: 10px;
+            margin: 0 0 20px 0;
+            font-size: 1.1rem;
         }
 
-        .hidden { display: none !important; }
+        .card h3 svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-header h3 { margin: 0; }
+
+        /* Chart container */
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        /* Weight Section Styling */
+        .weight-section {
+            border-left: 4px solid var(--weight-color);
+        }
+
+        .weight-section h3 svg {
+            color: var(--weight-color);
+        }
 
         /* Weight Metrics Grid */
         .weight-metrics-grid {
@@ -195,7 +319,7 @@
 
         .weight-metric-card.positive::before { background: var(--success-color); }
         .weight-metric-card.warning::before { background: var(--warning-color); }
-        .weight-metric-card.neutral::before { background: var(--primary-color); }
+        .weight-metric-card.neutral::before { background: var(--weight-color); }
 
         .weight-metric-label {
             font-size: 0.8rem;
@@ -206,7 +330,7 @@
         }
 
         .weight-metric-value {
-            font-size: 1.75rem;
+            font-size: 2rem;
             font-weight: 700;
             color: var(--text-primary);
         }
@@ -224,18 +348,11 @@
 
         .weight-metric-change.positive { color: var(--success-color); }
         .weight-metric-change.negative { color: var(--danger-color); }
-        .weight-metric-change.neutral { color: var(--text-secondary); }
 
         .weight-metric-status {
             font-size: 0.75rem;
             color: var(--text-secondary);
             margin-top: 4px;
-        }
-
-        /* Chart containers */
-        .chart-container {
-            height: 350px;
-            position: relative;
         }
 
         /* Milestones */
@@ -253,16 +370,17 @@
             border-radius: 8px;
             min-width: 100px;
             position: relative;
+            border: 2px solid transparent;
         }
 
         .milestone.achieved {
             background: var(--success-light);
-            border: 2px solid var(--success-color);
+            border-color: var(--success-color);
         }
 
         .milestone.next {
             background: var(--warning-light);
-            border: 2px solid var(--warning-color);
+            border-color: var(--warning-color);
         }
 
         .milestone-percent {
@@ -298,11 +416,9 @@
             font-weight: 600;
         }
 
-        .milestone.next .milestone-badge {
-            background: var(--warning-color);
-        }
+        .milestone.next .milestone-badge { background: var(--warning-color); }
 
-        /* Context section */
+        /* Context grid */
         .context-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -317,7 +433,7 @@
 
         .context-card h4 {
             margin: 0 0 8px 0;
-            color: #059669;
+            color: var(--weight-color);
             font-size: 0.95rem;
         }
 
@@ -327,224 +443,303 @@
             color: var(--text-secondary);
         }
 
-        /* Data table */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
+        /* Optional upload prompt */
+        .optional-upload-prompt {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 2px dashed var(--weight-color);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .optional-upload-prompt h4 {
+            margin: 0 0 8px 0;
+            color: var(--weight-color);
+        }
+
+        .optional-upload-prompt p {
+            margin: 0 0 16px 0;
+            color: var(--text-secondary);
             font-size: 0.9rem;
         }
 
-        .data-table th, .data-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .data-table th {
-            background: var(--bg-tertiary);
-            font-weight: 600;
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-        }
-
-        .file-status {
+        /* Weight section divider */
+        .weight-divider {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
-            margin-top: 12px;
+            gap: 16px;
+            margin: 32px 0;
+            color: var(--weight-color);
         }
 
-        .file-status.success { color: var(--success-color); }
-        .file-status.waiting { color: var(--text-muted); }
+        .weight-divider::before,
+        .weight-divider::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: var(--weight-color);
+            opacity: 0.3;
+        }
+
+        .weight-divider span {
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 24px;
+            margin-top: 40px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .upload-section { grid-template-columns: 1fr; }
             .weight-metrics-grid { grid-template-columns: repeat(2, 1fr); }
             .context-grid { grid-template-columns: 1fr; }
+            .patient-info-bar { flex-direction: column; align-items: flex-start; }
+            .header { flex-direction: column; gap: 16px; text-align: center; }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Header -->
         <header class="header">
-            <h1>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                    <path d="M2 17l10 5 10-5"></path>
-                    <path d="M2 12l10 5 10-5"></path>
-                </svg>
-                Weight Tracking Prototype
-                <span class="prototype-badge">Testing</span>
-            </h1>
-            <p>Test weight data visualization before integrating into main CGM Portal</p>
+            <div class="header-content">
+                <h1>
+                    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    CGM Portal
+                    <span class="prototype-badge">v2 Prototype</span>
+                </h1>
+                <div class="header-subtitle">Continuous Glucose Monitoring for Weight Loss</div>
+            </div>
         </header>
 
-        <!-- Upload Section -->
-        <section class="upload-section">
+        <!-- Upload Section (CGM Required) -->
+        <section id="uploadSection" class="upload-section">
             <div class="upload-card">
-                <h3>📊 Glucose Data (Optional)</h3>
-                <p>Upload glucose_readings.csv to see weight-glucose correlation</p>
+                <div class="upload-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                </div>
+                <h2>Upload Signos CGM Data</h2>
+                <p>Upload your glucose_readings.csv file exported from Signos</p>
                 <div class="upload-area" id="glucoseDropZone">
                     <input type="file" id="glucoseInput" accept=".csv" hidden>
+                    <p style="margin: 0 0 16px 0; color: var(--text-secondary);">Drag and drop your CSV file here, or</p>
                     <button class="btn btn-primary" onclick="document.getElementById('glucoseInput').click()">
-                        Upload Glucose CSV
+                        Browse Files
                     </button>
                 </div>
-                <div class="file-status waiting" id="glucoseStatus">
-                    <span>⏳</span> No glucose data loaded
-                </div>
-            </div>
-
-            <div class="upload-card">
-                <h3>⚖️ Activity Log (Required)</h3>
-                <p>Upload activity_logs.csv to extract weight measurements</p>
-                <div class="upload-area" id="weightDropZone">
-                    <input type="file" id="weightInput" accept=".csv" hidden>
-                    <button class="btn btn-success" onclick="document.getElementById('weightInput').click()">
-                        Upload Activity Log CSV
-                    </button>
-                </div>
-                <div class="file-status waiting" id="weightStatus">
-                    <span>⏳</span> No weight data loaded
-                </div>
-            </div>
-        </section>
-
-        <!-- Dashboard (hidden until data loaded) -->
-        <main id="dashboard" class="hidden">
-            <!-- Weight Metrics Cards -->
-            <section class="weight-metrics-grid">
-                <div class="weight-metric-card neutral" id="currentWeightCard">
-                    <div class="weight-metric-label">Current Weight</div>
-                    <div class="weight-metric-value" id="currentWeight">-</div>
-                    <div class="weight-metric-unit">lbs</div>
-                    <div class="weight-metric-status" id="currentWeightDate">-</div>
-                </div>
-
-                <div class="weight-metric-card neutral" id="startingWeightCard">
-                    <div class="weight-metric-label">Starting Weight</div>
-                    <div class="weight-metric-value" id="startingWeight">-</div>
-                    <div class="weight-metric-unit">lbs</div>
-                    <div class="weight-metric-status" id="startingWeightDate">-</div>
-                </div>
-
-                <div class="weight-metric-card" id="totalChangeCard">
-                    <div class="weight-metric-label">Total Change</div>
-                    <div class="weight-metric-value" id="totalChange">-</div>
-                    <div class="weight-metric-unit">lbs</div>
-                    <div class="weight-metric-change" id="totalChangePercent">-</div>
-                </div>
-
-                <div class="weight-metric-card" id="weeklyRateCard">
-                    <div class="weight-metric-label">Weekly Rate</div>
-                    <div class="weight-metric-value" id="weeklyRate">-</div>
-                    <div class="weight-metric-unit">lbs/week</div>
-                    <div class="weight-metric-change" id="weeklyRateStatus">-</div>
-                </div>
-            </section>
-
-            <!-- Weight Trend Chart -->
-            <section class="card">
-                <h3>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
-                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-                        <polyline points="17 6 23 6 23 12"></polyline>
-                    </svg>
-                    Weight & Glucose Correlation
-                </h3>
-                <div class="chart-container">
-                    <canvas id="correlationChart"></canvas>
-                </div>
-            </section>
-
-            <!-- Milestones -->
-            <section class="card">
-                <h3>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    </svg>
-                    Weight Loss Milestones
-                </h3>
-                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
-                    Clinical benefits increase at each milestone. Based on ADA Standards of Care guidelines.
-                </p>
-                <div class="milestones-grid" id="milestonesGrid">
-                    <!-- Populated by JavaScript -->
-                </div>
-            </section>
-
-            <!-- Weight History Table -->
-            <section class="card">
-                <h3>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                    Weight Measurement History
-                </h3>
-                <div style="max-height: 300px; overflow-y: auto;">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Weight (lbs)</th>
-                                <th>Change</th>
-                                <th>From Start</th>
-                            </tr>
-                        </thead>
-                        <tbody id="weightTableBody">
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- Context Section -->
-            <section class="card">
-                <h3>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+                <div class="upload-note">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="12" y1="16" x2="12" y2="12"></line>
                         <line x1="12" y1="8" x2="12.01" y2="8"></line>
                     </svg>
-                    Understanding Weight & Glucose Connection
-                </h3>
-                <div class="context-grid">
-                    <div class="context-card">
-                        <h4>Why Track Both?</h4>
-                        <p>Weight loss improves insulin sensitivity, which leads to better glucose control. Seeing both metrics together shows the cause-and-effect relationship of your lifestyle changes.</p>
+                    <span>All data is processed locally. No data is sent to any server.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Dashboard -->
+        <main id="dashboard" class="hidden">
+            <!-- Patient Info Bar -->
+            <section class="patient-info-bar">
+                <div class="patient-details">
+                    <div class="info-item">
+                        <span class="info-label">Data Range</span>
+                        <span class="info-value" id="dateRange">-</span>
                     </div>
-                    <div class="context-card">
-                        <h4>Sustainable Rate</h4>
-                        <p>A healthy weight loss rate is 0.5-2 lbs per week. Faster loss may indicate muscle loss or unsustainable restriction. Slower is fine if glucose metrics are improving.</p>
+                    <div class="info-item">
+                        <span class="info-label">Total Days</span>
+                        <span class="info-value" id="totalDays">-</span>
                     </div>
-                    <div class="context-card">
-                        <h4>Clinical Milestones</h4>
-                        <p>Per ADA guidelines: 3% loss begins metabolic benefits, 5% shows meaningful improvement, 7%+ significantly reduces diabetes risk, 10%+ provides major health benefits.</p>
-                    </div>
-                    <div class="context-card">
-                        <h4>Daily Fluctuations</h4>
-                        <p>Weight can fluctuate 2-5 lbs daily due to water, sodium, and digestion. Focus on weekly averages and overall trend rather than day-to-day changes.</p>
+                    <div class="info-item">
+                        <span class="info-label">Total Readings</span>
+                        <span class="info-value" id="totalReadings">-</span>
                     </div>
                 </div>
+                <div class="header-actions">
+                    <button class="btn btn-outline btn-sm" onclick="resetDashboard()">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        Load New Data
+                    </button>
+                </div>
+            </section>
+
+            <!-- Placeholder for CGM charts (simplified for prototype) -->
+            <section class="card">
+                <h3>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                    CGM Data Loaded
+                </h3>
+                <p style="color: var(--text-secondary);">
+                    This prototype focuses on weight visualization. In the full portal, all CGM charts
+                    (AGP, Time in Range, Daily Patterns, etc.) would appear here.
+                </p>
+                <div style="background: var(--bg-tertiary); padding: 40px; border-radius: 8px; text-align: center; color: var(--text-muted);">
+                    [CGM Dashboard Content - See index.html for full implementation]
+                </div>
+            </section>
+
+            <!-- Optional Weight Upload Prompt -->
+            <section id="weightUploadPrompt" class="optional-upload-prompt">
+                <h4>
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    Add Weight Data (Optional)
+                </h4>
+                <p>Upload your activity_logs.csv to see weight trends and how they correlate with your glucose data</p>
+                <input type="file" id="weightInput" accept=".csv" hidden>
+                <button class="btn btn-weight" onclick="document.getElementById('weightInput').click()">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    Upload Activity Log
+                </button>
+            </section>
+
+            <!-- Weight Section (hidden until weight data loaded) -->
+            <section id="weightSection" class="hidden">
+                <div class="weight-divider">
+                    <span>Weight Progress</span>
+                </div>
+
+                <!-- Weight Metrics Cards -->
+                <section class="weight-metrics-grid">
+                    <div class="weight-metric-card neutral" id="currentWeightCard">
+                        <div class="weight-metric-label">Current Weight</div>
+                        <div class="weight-metric-value" id="currentWeight">-</div>
+                        <div class="weight-metric-unit">lbs</div>
+                        <div class="weight-metric-status" id="currentWeightDate">-</div>
+                    </div>
+
+                    <div class="weight-metric-card neutral" id="startingWeightCard">
+                        <div class="weight-metric-label">Starting Weight</div>
+                        <div class="weight-metric-value" id="startingWeight">-</div>
+                        <div class="weight-metric-unit">lbs</div>
+                        <div class="weight-metric-status" id="startingWeightDate">-</div>
+                    </div>
+
+                    <div class="weight-metric-card" id="totalChangeCard">
+                        <div class="weight-metric-label">Total Change</div>
+                        <div class="weight-metric-value" id="totalChange">-</div>
+                        <div class="weight-metric-unit">lbs</div>
+                        <div class="weight-metric-change" id="totalChangePercent">-</div>
+                    </div>
+
+                    <div class="weight-metric-card" id="weeklyRateCard">
+                        <div class="weight-metric-label">Weekly Rate</div>
+                        <div class="weight-metric-value" id="weeklyRate">-</div>
+                        <div class="weight-metric-unit">lbs/week</div>
+                        <div class="weight-metric-change" id="weeklyRateStatus">-</div>
+                    </div>
+                </section>
+
+                <!-- Weight Trend Chart (Clean line with trendline - like Long-term Progress) -->
+                <section class="card weight-section">
+                    <div class="section-header">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                                <polyline points="17 6 23 6 23 12"></polyline>
+                            </svg>
+                            Weight Progress Over Time
+                        </h3>
+                        <div>
+                            <select id="weightChartView" onchange="updateWeightChart()" style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 6px;">
+                                <option value="weight">Weight (lbs)</option>
+                                <option value="change">Change from Start (lbs)</option>
+                                <option value="percent">Change from Start (%)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="weightChart"></canvas>
+                    </div>
+                </section>
+
+                <!-- Milestones -->
+                <section class="card weight-section">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        Weight Loss Milestones
+                    </h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+                        Clinical benefits increase at each milestone. Based on ADA Standards of Care guidelines.
+                    </p>
+                    <div class="milestones-grid" id="milestonesGrid"></div>
+                </section>
+
+                <!-- Understanding Section -->
+                <section class="card weight-section">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        Understanding Weight & Glucose Connection
+                    </h3>
+                    <div class="context-grid">
+                        <div class="context-card">
+                            <h4>Why Track Both?</h4>
+                            <p>Weight loss improves insulin sensitivity, leading to better glucose control. Seeing both metrics shows the cause-and-effect of your lifestyle changes.</p>
+                        </div>
+                        <div class="context-card">
+                            <h4>Sustainable Rate</h4>
+                            <p>Healthy weight loss is 0.5-2 lbs/week. Faster may indicate muscle loss. Slower is fine if glucose metrics are improving.</p>
+                        </div>
+                        <div class="context-card">
+                            <h4>Clinical Milestones</h4>
+                            <p>3% loss begins metabolic benefits, 5% shows meaningful improvement, 7%+ reduces diabetes risk, 10%+ provides major benefits.</p>
+                        </div>
+                        <div class="context-card">
+                            <h4>Daily Fluctuations</h4>
+                            <p>Weight fluctuates 2-5 lbs daily from water and digestion. Focus on the trend line, not day-to-day changes.</p>
+                        </div>
+                    </div>
+                </section>
             </section>
         </main>
 
-        <footer style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 0.85rem;">
-            <p>Weight Tracking Prototype | All data processed locally in browser</p>
+        <footer class="footer">
+            <p>CGM Portal v2 Prototype | All data processed locally in browser</p>
         </footer>
     </div>
 
     <script>
         // Global state
-        let weightData = [];
         let glucoseData = [];
-        let chart = null;
+        let weightData = [];
+        let weightChart = null;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -552,22 +747,19 @@
         });
 
         function setupFileUploads() {
-            // Glucose file
+            // Glucose file (required)
             const glucoseInput = document.getElementById('glucoseInput');
             const glucoseDropZone = document.getElementById('glucoseDropZone');
 
             glucoseInput.addEventListener('change', (e) => handleGlucoseFile(e.target.files[0]));
-            setupDropZone(glucoseDropZone, glucoseInput, handleGlucoseFile);
+            setupDropZone(glucoseDropZone, handleGlucoseFile);
 
-            // Weight file
+            // Weight file (optional)
             const weightInput = document.getElementById('weightInput');
-            const weightDropZone = document.getElementById('weightDropZone');
-
             weightInput.addEventListener('change', (e) => handleWeightFile(e.target.files[0]));
-            setupDropZone(weightDropZone, weightInput, handleWeightFile);
         }
 
-        function setupDropZone(dropZone, input, handler) {
+        function setupDropZone(dropZone, handler) {
             dropZone.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 dropZone.classList.add('dragover');
@@ -602,20 +794,10 @@
                         .filter(row => !isNaN(row.timestamp.getTime()) && !isNaN(row.glucose))
                         .sort((a, b) => a.timestamp - b.timestamp);
 
-                    const statusEl = document.getElementById('glucoseStatus');
-                    const dropZone = document.getElementById('glucoseDropZone');
-
                     if (glucoseData.length > 0) {
-                        statusEl.className = 'file-status success';
-                        statusEl.innerHTML = `<span>✓</span> ${glucoseData.length.toLocaleString()} glucose readings loaded`;
-                        dropZone.classList.add('has-file');
-
-                        if (weightData.length > 0) {
-                            renderDashboard();
-                        }
+                        showDashboard();
                     } else {
-                        statusEl.className = 'file-status waiting';
-                        statusEl.innerHTML = `<span>⚠️</span> No valid glucose data found`;
+                        alert('No valid glucose data found in file.');
                     }
                 }
             });
@@ -628,14 +810,11 @@
                 header: true,
                 skipEmptyLines: true,
                 complete: (results) => {
-                    // Filter for weight entries and parse
                     weightData = results.data
                         .filter(row => row.category === 'Weight' && row.notes)
                         .map(row => {
-                            // Extract number from notes like "268.9110611675395 lbs."
                             const weightMatch = row.notes.match(/[\d.]+/);
                             const weight = weightMatch ? parseFloat(weightMatch[0]) : null;
-
                             return {
                                 timestamp: new Date(row.start_at),
                                 weight: weight ? parseFloat(weight.toFixed(1)) : null
@@ -644,29 +823,53 @@
                         .filter(row => row.weight !== null && !isNaN(row.timestamp.getTime()))
                         .sort((a, b) => a.timestamp - b.timestamp);
 
-                    const statusEl = document.getElementById('weightStatus');
-                    const dropZone = document.getElementById('weightDropZone');
-
                     if (weightData.length > 0) {
-                        statusEl.className = 'file-status success';
-                        statusEl.innerHTML = `<span>✓</span> ${weightData.length} weight measurements loaded`;
-                        dropZone.classList.add('has-file');
-                        renderDashboard();
+                        showWeightSection();
                     } else {
-                        statusEl.className = 'file-status waiting';
-                        statusEl.innerHTML = `<span>⚠️</span> No weight entries found in file`;
+                        alert('No weight entries found in the activity log file.');
                     }
                 }
             });
         }
 
-        function renderDashboard() {
+        function showDashboard() {
+            document.getElementById('uploadSection').classList.add('hidden');
             document.getElementById('dashboard').classList.remove('hidden');
+            renderPatientInfo();
+        }
 
+        function showWeightSection() {
+            document.getElementById('weightUploadPrompt').classList.add('hidden');
+            document.getElementById('weightSection').classList.remove('hidden');
             renderWeightMetrics();
-            renderCorrelationChart();
+            renderWeightChart();
             renderMilestones();
-            renderWeightTable();
+        }
+
+        function resetDashboard() {
+            document.getElementById('uploadSection').classList.remove('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('weightSection').classList.add('hidden');
+            document.getElementById('weightUploadPrompt').classList.remove('hidden');
+            document.getElementById('glucoseInput').value = '';
+            document.getElementById('weightInput').value = '';
+            glucoseData = [];
+            weightData = [];
+            if (weightChart) {
+                weightChart.destroy();
+                weightChart = null;
+            }
+        }
+
+        function renderPatientInfo() {
+            const minDate = glucoseData[0].timestamp;
+            const maxDate = glucoseData[glucoseData.length - 1].timestamp;
+            const totalDays = Math.ceil((maxDate - minDate) / (24 * 60 * 60 * 1000)) + 1;
+
+            document.getElementById('dateRange').textContent =
+                `${minDate.toLocaleDateString()} - ${maxDate.toLocaleDateString()}`;
+            document.getElementById('totalDays').textContent = totalDays;
+            document.getElementById('totalReadings').textContent = glucoseData.length.toLocaleString();
         }
 
         function renderWeightMetrics() {
@@ -677,7 +880,6 @@
             const totalChange = currentWeight - startWeight;
             const percentChange = (totalChange / startWeight) * 100;
 
-            // Calculate weekly rate
             const daysDiff = (weightData[weightData.length - 1].timestamp - weightData[0].timestamp) / (1000 * 60 * 60 * 24);
             const weeksDiff = daysDiff / 7;
             const weeklyRate = weeksDiff > 0 ? totalChange / weeksDiff : 0;
@@ -704,25 +906,21 @@
 
             // Weekly rate
             document.getElementById('weeklyRate').textContent =
-                (weeklyRate >= 0 ? '+' : '') + weeklyRate.toFixed(1);
+                (weeklyRate >= 0 ? '+' : '') + weeklyRate.toFixed(2);
 
-            let rateStatus = '';
-            let rateClass = 'neutral';
+            let rateStatus, rateClass;
             if (weeklyRate <= -2) {
                 rateStatus = 'Rapid - monitor closely';
                 rateClass = 'warning';
             } else if (weeklyRate <= -0.5) {
-                rateStatus = '✓ On track';
+                rateStatus = 'On track';
                 rateClass = 'positive';
             } else if (weeklyRate < 0) {
                 rateStatus = 'Slow but steady';
                 rateClass = 'positive';
-            } else if (weeklyRate === 0) {
-                rateStatus = 'Maintaining';
-                rateClass = 'neutral';
             } else {
-                rateStatus = 'Gaining';
-                rateClass = 'negative';
+                rateStatus = weeklyRate === 0 ? 'Maintaining' : 'Gaining';
+                rateClass = weeklyRate > 0 ? 'negative' : 'neutral';
             }
 
             document.getElementById('weeklyRateStatus').textContent = rateStatus;
@@ -731,76 +929,86 @@
                 'weight-metric-card ' + (weeklyRate <= 0 ? 'positive' : 'warning');
         }
 
-        function renderCorrelationChart() {
-            const ctx = document.getElementById('correlationChart').getContext('2d');
+        function renderWeightChart() {
+            updateWeightChart();
+        }
 
-            if (chart) {
-                chart.destroy();
+        function updateWeightChart() {
+            const ctx = document.getElementById('weightChart').getContext('2d');
+            const view = document.getElementById('weightChartView').value;
+
+            if (weightChart) {
+                weightChart.destroy();
             }
 
-            // Prepare weight data
-            const weightPoints = weightData.map(d => ({
-                x: d.timestamp,
-                y: d.weight
-            }));
+            const startWeight = weightData[0].weight;
 
-            // Prepare daily glucose averages if available
-            let glucosePoints = [];
-            if (glucoseData.length > 0) {
-                const dailyGlucose = {};
-                glucoseData.forEach(d => {
-                    const dateKey = d.timestamp.toISOString().split('T')[0];
-                    if (!dailyGlucose[dateKey]) {
-                        dailyGlucose[dateKey] = [];
-                    }
-                    dailyGlucose[dateKey].push(d.glucose);
-                });
+            // Prepare data based on view
+            let dataPoints, label, color;
 
-                glucosePoints = Object.entries(dailyGlucose).map(([date, values]) => ({
-                    x: new Date(date),
-                    y: values.reduce((a, b) => a + b, 0) / values.length
-                })).sort((a, b) => a.x - b.x);
+            switch (view) {
+                case 'change':
+                    dataPoints = weightData.map(d => ({
+                        x: d.timestamp,
+                        y: d.weight - startWeight
+                    }));
+                    label = 'Change from Start (lbs)';
+                    color = '#059669';
+                    break;
+                case 'percent':
+                    dataPoints = weightData.map(d => ({
+                        x: d.timestamp,
+                        y: ((d.weight - startWeight) / startWeight) * 100
+                    }));
+                    label = 'Change from Start (%)';
+                    color = '#8b5cf6';
+                    break;
+                default:
+                    dataPoints = weightData.map(d => ({
+                        x: d.timestamp,
+                        y: d.weight
+                    }));
+                    label = 'Weight (lbs)';
+                    color = '#059669';
             }
 
-            const datasets = [
-                {
-                    label: 'Weight (lbs)',
-                    data: weightPoints,
-                    borderColor: '#059669',
-                    backgroundColor: 'rgba(5, 150, 105, 0.1)',
-                    borderWidth: 3,
-                    pointRadius: 6,
-                    pointBackgroundColor: '#059669',
-                    fill: true,
-                    tension: 0.4,
-                    yAxisID: 'y'
-                }
-            ];
+            // Calculate trendline
+            const trendline = calculateTrendline(dataPoints);
 
-            if (glucosePoints.length > 0) {
-                datasets.push({
-                    label: 'Avg Daily Glucose (mg/dL)',
-                    data: glucosePoints,
-                    borderColor: '#2563eb',
-                    backgroundColor: 'transparent',
-                    borderWidth: 2,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#2563eb',
-                    borderDash: [5, 5],
-                    tension: 0.4,
-                    yAxisID: 'y1'
-                });
-            }
-
-            chart = new Chart(ctx, {
+            weightChart = new Chart(ctx, {
                 type: 'line',
-                data: { datasets },
+                data: {
+                    datasets: [
+                        {
+                            label: label,
+                            data: dataPoints,
+                            borderColor: color,
+                            backgroundColor: color + '15',
+                            borderWidth: 2,
+                            pointRadius: 0,  // No dots!
+                            pointHoverRadius: 6,
+                            pointHoverBackgroundColor: color,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Trend',
+                            data: trendline,
+                            borderColor: '#94a3b8',
+                            borderWidth: 2,
+                            borderDash: [8, 4],
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0
+                        }
+                    ]
+                },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     interaction: {
-                        mode: 'index',
-                        intersect: false
+                        intersect: false,
+                        mode: 'index'
                     },
                     plugins: {
                         legend: {
@@ -809,21 +1017,32 @@
                         },
                         tooltip: {
                             callbacks: {
+                                title: (context) => {
+                                    const date = new Date(context[0].raw.x);
+                                    return date.toLocaleDateString('en-US', {
+                                        weekday: 'short',
+                                        month: 'short',
+                                        day: 'numeric'
+                                    });
+                                },
                                 label: (context) => {
-                                    const label = context.dataset.label;
-                                    const value = context.raw.y.toFixed(1);
-                                    return `${label}: ${value}`;
+                                    if (context.datasetIndex === 0) {
+                                        const val = context.raw.y.toFixed(1);
+                                        return `${label}: ${val}`;
+                                    }
+                                    return null;
                                 }
-                            }
+                            },
+                            filter: (item) => item.datasetIndex === 0
                         }
                     },
                     scales: {
                         x: {
                             type: 'time',
                             time: {
-                                unit: 'day',
+                                unit: 'week',
                                 displayFormats: {
-                                    day: 'MMM d'
+                                    week: 'MMM d'
                                 }
                             },
                             grid: {
@@ -831,32 +1050,36 @@
                             }
                         },
                         y: {
-                            type: 'linear',
-                            position: 'left',
-                            title: {
-                                display: true,
-                                text: 'Weight (lbs)',
-                                color: '#059669'
-                            },
                             grid: {
                                 color: 'rgba(0, 0, 0, 0.05)'
                             }
-                        },
-                        y1: glucosePoints.length > 0 ? {
-                            type: 'linear',
-                            position: 'right',
-                            title: {
-                                display: true,
-                                text: 'Glucose (mg/dL)',
-                                color: '#2563eb'
-                            },
-                            grid: {
-                                drawOnChartArea: false
-                            }
-                        } : undefined
+                        }
                     }
                 }
             });
+        }
+
+        function calculateTrendline(dataPoints) {
+            const n = dataPoints.length;
+            if (n < 2) return dataPoints;
+
+            // Convert timestamps to numeric values for regression
+            const xValues = dataPoints.map(d => d.x.getTime());
+            const yValues = dataPoints.map(d => d.y);
+
+            const sumX = xValues.reduce((a, b) => a + b, 0);
+            const sumY = yValues.reduce((a, b) => a + b, 0);
+            const sumXY = xValues.reduce((sum, x, i) => sum + x * yValues[i], 0);
+            const sumXX = xValues.reduce((sum, x) => sum + x * x, 0);
+
+            const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+
+            // Return trendline points (just start and end for a straight line)
+            return [
+                { x: dataPoints[0].x, y: slope * xValues[0] + intercept },
+                { x: dataPoints[n - 1].x, y: slope * xValues[n - 1] + intercept }
+            ];
         }
 
         function renderMilestones() {
@@ -868,11 +1091,11 @@
             const lostPercent = ((startWeight - currentWeight) / startWeight) * 100;
 
             const milestones = [
-                { percent: 3, label: 'Initial Benefits', description: 'Metabolic improvement begins' },
-                { percent: 5, label: 'Meaningful', description: 'Significant health markers improve' },
-                { percent: 7, label: 'Significant', description: 'Diabetes risk reduction' },
-                { percent: 10, label: 'Major', description: 'Substantial health benefits' },
-                { percent: 15, label: 'Transformative', description: 'Disease-modifying effects' }
+                { percent: 3, label: 'Initial Benefits' },
+                { percent: 5, label: 'Meaningful' },
+                { percent: 7, label: 'Significant' },
+                { percent: 10, label: 'Major' },
+                { percent: 15, label: 'Transformative' }
             ];
 
             let foundNext = false;
@@ -884,37 +1107,12 @@
 
                 return `
                     <div class="milestone ${achieved ? 'achieved' : ''} ${isNext ? 'next' : ''}">
-                        ${achieved ? '<span class="milestone-badge">✓ Done</span>' : ''}
+                        ${achieved ? '<span class="milestone-badge">Done</span>' : ''}
                         ${isNext ? '<span class="milestone-badge">Next</span>' : ''}
                         <div class="milestone-percent">${m.percent}%</div>
                         <div class="milestone-label">${m.label}</div>
                         <div class="milestone-weight">${targetWeight.toFixed(1)} lbs</div>
                     </div>
-                `;
-            }).join('');
-        }
-
-        function renderWeightTable() {
-            const tbody = document.getElementById('weightTableBody');
-            if (weightData.length === 0) return;
-
-            const startWeight = weightData[0].weight;
-
-            tbody.innerHTML = weightData.slice().reverse().map((d, i, arr) => {
-                const prevWeight = i < arr.length - 1 ? arr[i + 1].weight : d.weight;
-                const change = d.weight - prevWeight;
-                const fromStart = d.weight - startWeight;
-
-                const changeClass = change <= 0 ? 'positive' : 'negative';
-                const fromStartClass = fromStart <= 0 ? 'positive' : 'negative';
-
-                return `
-                    <tr>
-                        <td>${d.timestamp.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</td>
-                        <td><strong>${d.weight.toFixed(1)}</strong></td>
-                        <td class="weight-metric-change ${changeClass}">${change >= 0 ? '+' : ''}${change.toFixed(1)}</td>
-                        <td class="weight-metric-change ${fromStartClass}">${fromStart >= 0 ? '+' : ''}${fromStart.toFixed(1)}</td>
-                    </tr>
                 `;
             }).join('');
         }
