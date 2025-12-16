@@ -348,6 +348,259 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Optional Weight Upload Prompt -->
+            <section id="weightUploadPrompt" class="optional-upload-prompt">
+                <h4>
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    Add Weight Data (Optional)
+                </h4>
+                <p>Upload your activity_logs.csv to see weight trends, health insights, and how they correlate with your glucose data</p>
+                <input type="file" id="weightInput" accept=".csv" hidden>
+                <button class="btn btn-weight" onclick="document.getElementById('weightInput').click()">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    Upload Activity Log
+                </button>
+            </section>
+
+            <!-- Weight Section (hidden until weight data loaded) -->
+            <section id="weightSection" class="hidden">
+                <div class="weight-divider">
+                    <span>Weight Progress & Health Insights</span>
+                </div>
+
+                <!-- Weight Metrics Cards -->
+                <section class="weight-metrics-grid">
+                    <div class="weight-metric-card neutral" id="currentWeightCard">
+                        <div class="weight-metric-label">Current Weight</div>
+                        <div class="weight-metric-value" id="currentWeight">-</div>
+                        <div class="weight-metric-unit">lbs</div>
+                        <div class="weight-metric-status" id="currentWeightDate">-</div>
+                    </div>
+
+                    <div class="weight-metric-card neutral" id="startingWeightCard">
+                        <div class="weight-metric-label">Starting Weight</div>
+                        <div class="weight-metric-value" id="startingWeight">-</div>
+                        <div class="weight-metric-unit">lbs</div>
+                        <div class="weight-metric-status" id="startingWeightDate">-</div>
+                    </div>
+
+                    <div class="weight-metric-card" id="totalChangeCard">
+                        <div class="weight-metric-label">Total Change</div>
+                        <div class="weight-metric-value" id="totalChange">-</div>
+                        <div class="weight-metric-unit">lbs</div>
+                        <div class="weight-metric-change" id="totalChangePercent">-</div>
+                    </div>
+
+                    <div class="weight-metric-card" id="weeklyRateCard">
+                        <div class="weight-metric-label">Weekly Rate</div>
+                        <div class="weight-metric-value" id="weeklyRate">-</div>
+                        <div class="weight-metric-unit">lbs/week</div>
+                        <div class="weight-metric-change" id="weeklyRateStatus">-</div>
+                    </div>
+                </section>
+
+                <!-- Weight & Glucose Correlation Chart -->
+                <section class="card weight-section">
+                    <div class="section-header">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                                <polyline points="17 6 23 6 23 12"></polyline>
+                            </svg>
+                            Weight & Glucose Correlation
+                        </h3>
+                        <div class="chart-legend-custom">
+                            <span class="legend-item-custom">
+                                <span class="legend-line-custom" style="background: #059669;"></span>
+                                <span class="legend-dash-custom" style="background: linear-gradient(90deg, #059669 50%, transparent 50%); background-size: 8px 2px;"></span>
+                                Weight
+                            </span>
+                            <span class="legend-item-custom">
+                                <span class="legend-line-custom" style="background: #2563eb;"></span>
+                                <span class="legend-dash-custom" style="background: linear-gradient(90deg, #2563eb 50%, transparent 50%); background-size: 8px 2px;"></span>
+                                Avg Glucose
+                            </span>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin: -10px 0 20px 0;">
+                        See how weight loss correlates with improved glucose control over time
+                    </p>
+                    <div class="progress-chart-container" style="height: 350px;">
+                        <canvas id="weightChart"></canvas>
+                    </div>
+                    <div class="chart-insight" id="chartInsight"></div>
+                </section>
+
+                <!-- Health Insights Dashboard -->
+                <section class="card health-insights-section">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                        </svg>
+                        Health Insights Dashboard
+                    </h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin: -10px 0 24px 0;">
+                        Evidence-based metrics derived from your CGM and weight data
+                    </p>
+
+                    <!-- Key Metrics Cards -->
+                    <div class="insights-grid" id="insightsGrid">
+                        <!-- GMI Card -->
+                        <div class="insight-card">
+                            <div class="insight-card-header">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 6v6l4 2"></path>
+                                </svg>
+                                <span class="insight-card-title">GMI (Est. A1C)</span>
+                            </div>
+                            <div class="insight-value" id="gmiValue">-</div>
+                            <div class="insight-unit">%</div>
+                            <div class="insight-status" id="gmiStatus">-</div>
+                            <div class="insight-info" id="gmiInfo">Based on avg glucose</div>
+                        </div>
+
+                        <!-- CV% Card -->
+                        <div class="insight-card">
+                            <div class="insight-card-header">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                </svg>
+                                <span class="insight-card-title">Glucose Variability</span>
+                            </div>
+                            <div class="insight-value" id="cvValueInsight">-</div>
+                            <div class="insight-unit">CV%</div>
+                            <div class="insight-status" id="cvStatusInsight">-</div>
+                            <div class="insight-info">Lower = lower CVD risk</div>
+                        </div>
+
+                        <!-- Fasting Glucose Card -->
+                        <div class="insight-card">
+                            <div class="insight-card-header">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                                    <line x1="6" y1="1" x2="6" y2="4"></line>
+                                    <line x1="10" y1="1" x2="10" y2="4"></line>
+                                    <line x1="14" y1="1" x2="14" y2="4"></line>
+                                </svg>
+                                <span class="insight-card-title">Fasting Glucose</span>
+                            </div>
+                            <div class="insight-value" id="fastingValueInsight">-</div>
+                            <div class="insight-unit">mg/dL</div>
+                            <div class="insight-status" id="fastingStatusInsight">-</div>
+                            <div class="insight-info">Metabolic syndrome threshold: 100</div>
+                        </div>
+                    </div>
+
+                    <!-- Disease Risk Reduction -->
+                    <div class="risk-reduction-section" id="riskReductionSection">
+                        <h4>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            Estimated Disease Risk Reduction
+                        </h4>
+                        <div id="riskReductionContent">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Pattern Analysis -->
+                    <div class="pattern-analysis">
+                        <h4>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                            Pattern Analysis
+                        </h4>
+                        <div class="pattern-grid" id="patternGrid">
+                            <!-- Dawn Phenomenon -->
+                            <div class="pattern-item">
+                                <div class="pattern-icon" id="dawnIcon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M17 18a5 5 0 0 0-10 0"></path>
+                                        <line x1="12" y1="2" x2="12" y2="9"></line>
+                                        <line x1="4.22" y1="10.22" x2="5.64" y2="11.64"></line>
+                                        <line x1="1" y1="18" x2="3" y2="18"></line>
+                                        <line x1="21" y1="18" x2="23" y2="18"></line>
+                                        <line x1="18.36" y1="11.64" x2="19.78" y2="10.22"></line>
+                                        <line x1="23" y1="22" x2="1" y2="22"></line>
+                                        <polyline points="8 6 12 2 16 6"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="pattern-content">
+                                    <div class="pattern-title">Dawn Phenomenon</div>
+                                    <div class="pattern-value" id="dawnValue">Analyzing...</div>
+                                </div>
+                            </div>
+
+                            <!-- Post-Meal Spikes -->
+                            <div class="pattern-item">
+                                <div class="pattern-icon" id="spikeIcon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                                        <polyline points="17 6 23 6 23 12"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="pattern-content">
+                                    <div class="pattern-title">Post-Meal Spikes</div>
+                                    <div class="pattern-value" id="spikeValue">Analyzing...</div>
+                                </div>
+                            </div>
+
+                            <!-- Time in Optimal Range -->
+                            <div class="pattern-item">
+                                <div class="pattern-icon" id="tirIcon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                                    </svg>
+                                </div>
+                                <div class="pattern-content">
+                                    <div class="pattern-title">Time in Optimal Range</div>
+                                    <div class="pattern-value" id="tirValueInsight">Analyzing...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Medical Disclaimer -->
+                    <div class="medical-disclaimer">
+                        <strong>Medical Disclaimer:</strong> These insights are educational estimates based on population-level research.
+                        Individual results vary significantly based on genetics, medications, and other health conditions.
+                        These are not diagnoses and do not replace professional medical advice.
+                        Consult your healthcare provider for personalized guidance.
+                    </div>
+                </section>
+
+                <!-- Weight Loss Milestones -->
+                <section class="card weight-section">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        Weight Loss Milestones & Health Benefits
+                    </h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+                        Clinical benefits increase at each milestone. Based on ADA Standards of Care and clinical research.
+                    </p>
+                    <div class="milestones-grid" id="milestonesGrid"></div>
+                </section>
+            </section>
         </main>
 
         <!-- Footer -->

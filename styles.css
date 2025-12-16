@@ -852,3 +852,559 @@ body {
         max-width: 100%;
     }
 }
+
+/* ==========================================
+   WEIGHT TRACKING & HEALTH INSIGHTS STYLES
+   ========================================== */
+
+/* Weight color variable */
+:root {
+    --weight-color: #059669;
+}
+
+/* Weight Button */
+.btn-weight {
+    background-color: var(--weight-color);
+    color: white;
+}
+
+.btn-weight:hover {
+    background-color: #047857;
+}
+
+/* Optional Weight Upload Prompt */
+.optional-upload-prompt {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border: 2px dashed var(--weight-color);
+    border-radius: var(--border-radius);
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.optional-upload-prompt h4 {
+    margin: 0 0 8px 0;
+    color: var(--weight-color);
+}
+
+.optional-upload-prompt p {
+    margin: 0 0 16px 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Weight Section Divider */
+.weight-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 32px 0;
+    color: var(--weight-color);
+}
+
+.weight-divider::before,
+.weight-divider::after {
+    content: '';
+    flex: 1;
+    height: 2px;
+    background: var(--weight-color);
+    opacity: 0.3;
+}
+
+.weight-divider span {
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Weight Section Styling */
+.weight-section {
+    border-left: 4px solid var(--weight-color);
+}
+
+.weight-section h3 svg {
+    color: var(--weight-color);
+}
+
+/* Weight Metrics Grid */
+.weight-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.weight-metric-card {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.weight-metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--border-color);
+}
+
+.weight-metric-card.positive::before { background: var(--success-color); }
+.weight-metric-card.warning::before { background: var(--warning-color); }
+.weight-metric-card.neutral::before { background: var(--weight-color); }
+
+.weight-metric-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.weight-metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.weight-metric-unit {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.weight-metric-change {
+    font-size: 0.85rem;
+    margin-top: 8px;
+    font-weight: 600;
+}
+
+.weight-metric-change.positive { color: var(--success-color); }
+.weight-metric-change.negative { color: var(--danger-color); }
+
+.weight-metric-status {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+/* Custom Chart Legend */
+.chart-legend-custom {
+    display: flex;
+    gap: 24px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.legend-item-custom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend-line-custom {
+    width: 20px;
+    height: 3px;
+    border-radius: 2px;
+}
+
+.legend-dash-custom {
+    width: 20px;
+    height: 2px;
+}
+
+/* Chart Insight Box */
+.chart-insight {
+    margin-top: 16px;
+    padding: 16px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-radius: var(--border-radius-sm);
+    border-left: 4px solid var(--success-color);
+}
+
+.chart-insight h4 {
+    margin: 0 0 8px 0;
+    font-size: 0.9rem;
+    color: var(--success-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chart-insight p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.chart-insight.negative {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border-left-color: var(--danger-color);
+}
+
+.chart-insight.negative h4 {
+    color: var(--danger-color);
+}
+
+/* Milestones */
+.milestones-grid {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.milestone {
+    text-align: center;
+    padding: 16px 20px;
+    background: var(--bg-tertiary);
+    border-radius: var(--border-radius-sm);
+    min-width: 100px;
+    position: relative;
+    border: 2px solid transparent;
+}
+
+.milestone.achieved {
+    background: var(--success-light);
+    border-color: var(--success-color);
+}
+
+.milestone.next {
+    background: var(--warning-light);
+    border-color: var(--warning-color);
+}
+
+.milestone-percent {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.milestone.achieved .milestone-percent { color: var(--success-color); }
+.milestone.next .milestone-percent { color: var(--warning-color); }
+
+.milestone-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.milestone-weight {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.milestone-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: var(--success-color);
+    color: white;
+    font-size: 0.65rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.milestone.next .milestone-badge { background: var(--warning-color); }
+
+.milestone-benefits {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+.milestone.achieved .milestone-benefits {
+    color: #065f46;
+}
+
+/* Health Insights Dashboard */
+.health-insights-section {
+    border-left: 4px solid var(--primary-color);
+}
+
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.insight-card {
+    background: var(--bg-tertiary);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    text-align: center;
+    position: relative;
+}
+
+.insight-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.insight-card-header svg {
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
+}
+
+.insight-card-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.insight-value {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.insight-unit {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.insight-status {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.insight-status.normal {
+    background: var(--success-light);
+    color: #065f46;
+}
+
+.insight-status.warning {
+    background: var(--warning-light);
+    color: #92400e;
+}
+
+.insight-status.danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.insight-info {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 8px;
+}
+
+/* Risk Reduction Section */
+.risk-reduction-section {
+    background: var(--bg-tertiary);
+    border-radius: var(--border-radius);
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.risk-reduction-section h4 {
+    margin: 0 0 20px 0;
+    font-size: 1rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.risk-reduction-section h4 svg {
+    width: 20px;
+    height: 20px;
+    color: var(--success-color);
+}
+
+.risk-item {
+    margin-bottom: 20px;
+}
+
+.risk-item:last-child {
+    margin-bottom: 0;
+}
+
+.risk-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.risk-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.risk-value {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--success-color);
+}
+
+.risk-bar {
+    height: 8px;
+    background: var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.risk-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--success-color), #34d399);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.risk-basis {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+}
+
+/* Pattern Analysis */
+.pattern-analysis {
+    background: var(--bg-tertiary);
+    border-radius: var(--border-radius);
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.pattern-analysis h4 {
+    margin: 0 0 20px 0;
+    font-size: 1rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pattern-analysis h4 svg {
+    width: 20px;
+    height: 20px;
+    color: var(--primary-color);
+}
+
+.pattern-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.pattern-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-sm);
+}
+
+.pattern-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.pattern-icon.good {
+    background: var(--success-light);
+    color: var(--success-color);
+}
+
+.pattern-icon.warning {
+    background: var(--warning-light);
+    color: var(--warning-color);
+}
+
+.pattern-icon.neutral {
+    background: #e0e7ff;
+    color: #4f46e5;
+}
+
+.pattern-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.pattern-content {
+    flex: 1;
+}
+
+.pattern-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.pattern-value {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* Medical Disclaimer */
+.medical-disclaimer {
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 16px;
+    margin-top: 24px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.medical-disclaimer strong {
+    color: var(--text-secondary);
+}
+
+/* Responsive for Weight & Health Insights */
+@media (max-width: 1200px) {
+    .weight-metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .insights-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .pattern-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .weight-metrics-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .insights-grid {
+        grid-template-columns: 1fr;
+    }
+}
