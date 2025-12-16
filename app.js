@@ -987,3 +987,700 @@ function exportToPDF() {
         hideElements.forEach(el => el.style.display = '');
     });
 }
+
+// ============================================
+// WEIGHT TRACKING & HEALTH INSIGHTS
+// ============================================
+
+// Weight data storage
+let weightData = [];
+
+// Setup weight file upload on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const weightInput = document.getElementById('weightInput');
+    if (weightInput) {
+        weightInput.addEventListener('change', handleWeightFileSelect);
+    }
+});
+
+function handleWeightFileSelect(e) {
+    const file = e.target.files[0];
+    if (file) {
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+                // Filter for weight entries and parse
+                weightData = results.data
+                    .filter(row => row.category === 'Weight' && row.notes)
+                    .map(row => {
+                        const weightMatch = row.notes.match(/[\d.]+/);
+                        const weight = weightMatch ? parseFloat(weightMatch[0]) : null;
+                        return {
+                            timestamp: new Date(row.start_at),
+                            weight: weight ? parseFloat(weight.toFixed(1)) : null
+                        };
+                    })
+                    .filter(row => row.weight !== null && !isNaN(row.timestamp.getTime()))
+                    .sort((a, b) => a.timestamp - b.timestamp);
+
+                if (weightData.length > 0) {
+                    showWeightSection();
+                } else {
+                    alert('No weight data found in the activity log.');
+                }
+            },
+            error: (error) => {
+                alert('Error parsing activity log: ' + error.message);
+            }
+        });
+    }
+}
+
+function showWeightSection() {
+    document.getElementById('weightUploadPrompt').classList.add('hidden');
+    document.getElementById('weightSection').classList.remove('hidden');
+    renderWeightMetrics();
+    renderWeightChart();
+    renderHealthInsights();
+    renderMilestones();
+}
+
+function renderWeightMetrics() {
+    if (weightData.length === 0) return;
+
+    const startWeight = weightData[0].weight;
+    const currentWeight = weightData[weightData.length - 1].weight;
+    const totalChange = currentWeight - startWeight;
+    const changePercent = (totalChange / startWeight) * 100;
+
+    // Calculate weekly rate
+    const daysDiff = (weightData[weightData.length - 1].timestamp - weightData[0].timestamp) / (1000 * 60 * 60 * 24);
+    const weeklyRate = daysDiff > 0 ? (totalChange / daysDiff) * 7 : 0;
+
+    // Update metric cards
+    document.getElementById('currentWeight').textContent = currentWeight.toFixed(1);
+    document.getElementById('currentWeightDate').textContent = weightData[weightData.length - 1].timestamp.toLocaleDateString();
+
+    document.getElementById('startingWeight').textContent = startWeight.toFixed(1);
+    document.getElementById('startingWeightDate').textContent = weightData[0].timestamp.toLocaleDateString();
+
+    document.getElementById('totalChange').textContent = (totalChange >= 0 ? '+' : '') + totalChange.toFixed(1);
+    document.getElementById('totalChangePercent').textContent = (changePercent >= 0 ? '+' : '') + changePercent.toFixed(1) + '%';
+    document.getElementById('totalChangePercent').className = 'weight-metric-change ' + (totalChange <= 0 ? 'positive' : 'negative');
+
+    document.getElementById('weeklyRate').textContent = (weeklyRate >= 0 ? '+' : '') + weeklyRate.toFixed(2);
+    const rateStatus = weeklyRate <= 0 ? (weeklyRate >= -2 ? 'Healthy pace' : 'Rapid loss') : 'Gaining';
+    document.getElementById('weeklyRateStatus').textContent = rateStatus;
+    document.getElementById('weeklyRateStatus').className = 'weight-metric-change ' + (weeklyRate <= 0 ? 'positive' : 'negative');
+
+    // Update card states
+    document.getElementById('totalChangeCard').className = 'weight-metric-card ' + (totalChange <= 0 ? 'positive' : 'warning');
+    document.getElementById('weeklyRateCard').className = 'weight-metric-card ' + (weeklyRate <= 0 ? 'positive' : 'warning');
+}
+
+function renderWeightChart() {
+    if (weightData.length === 0) return;
+
+    const ctx = document.getElementById('weightChart').getContext('2d');
+
+    if (charts.weight) {
+        charts.weight.destroy();
+    }
+
+    // Prepare weight data points
+    const weightPoints = weightData.map(d => ({
+        x: d.timestamp,
+        y: d.weight
+    }));
+
+    // Calculate weight trendline
+    const weightTrendline = calculateLinearTrendline(weightPoints);
+
+    // Calculate weekly glucose averages
+    const weeklyGlucose = calculateWeeklyGlucoseAverages();
+
+    // Calculate glucose trendline
+    const glucoseTrendline = weeklyGlucose.length >= 2 ? calculateLinearTrendline(weeklyGlucose) : [];
+
+    const datasets = [
+        // Weight line (left axis)
+        {
+            label: 'Weight (lbs)',
+            data: weightPoints,
+            borderColor: '#059669',
+            backgroundColor: 'rgba(5, 150, 105, 0.08)',
+            borderWidth: 2.5,
+            pointRadius: 0,
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: '#059669',
+            fill: true,
+            tension: 0.4,
+            yAxisID: 'y'
+        },
+        // Weight trendline
+        {
+            label: 'Weight Trend',
+            data: weightTrendline,
+            borderColor: '#059669',
+            borderWidth: 2,
+            borderDash: [8, 4],
+            pointRadius: 0,
+            fill: false,
+            tension: 0,
+            yAxisID: 'y'
+        }
+    ];
+
+    // Add glucose data if available
+    if (weeklyGlucose.length > 0) {
+        datasets.push({
+            label: 'Avg Glucose (mg/dL)',
+            data: weeklyGlucose,
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37, 99, 235, 0.08)',
+            borderWidth: 2.5,
+            pointRadius: 0,
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: '#2563eb',
+            fill: true,
+            tension: 0.4,
+            yAxisID: 'y1'
+        });
+
+        if (glucoseTrendline.length > 0) {
+            datasets.push({
+                label: 'Glucose Trend',
+                data: glucoseTrendline,
+                borderColor: '#2563eb',
+                borderWidth: 2,
+                borderDash: [8, 4],
+                pointRadius: 0,
+                fill: false,
+                tension: 0,
+                yAxisID: 'y1'
+            });
+        }
+    }
+
+    charts.weight = new Chart(ctx, {
+        type: 'line',
+        data: { datasets: datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: (items) => {
+                            if (items.length > 0) {
+                                return new Date(items[0].parsed.x).toLocaleDateString();
+                            }
+                            return '';
+                        },
+                        label: (context) => {
+                            if (context.dataset.label.includes('Trend')) return null;
+                            const label = context.dataset.label;
+                            const value = context.parsed.y;
+                            if (label.includes('Weight')) {
+                                return `Weight: ${value.toFixed(1)} lbs`;
+                            } else if (label.includes('Glucose')) {
+                                return `Avg Glucose: ${value.toFixed(0)} mg/dL`;
+                            }
+                            return `${label}: ${value}`;
+                        }
+                    },
+                    filter: (item) => !item.dataset.label.includes('Trend')
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'week',
+                        displayFormats: { week: 'MMM d' }
+                    },
+                    grid: { display: false },
+                    ticks: { maxRotation: 0 }
+                },
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Weight (lbs)',
+                        color: '#059669'
+                    },
+                    ticks: { color: '#059669' },
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                y1: {
+                    type: 'linear',
+                    display: weeklyGlucose.length > 0,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Avg Glucose (mg/dL)',
+                        color: '#2563eb'
+                    },
+                    ticks: { color: '#2563eb' },
+                    grid: { drawOnChartArea: false }
+                }
+            }
+        }
+    });
+
+    // Generate chart insight
+    generateChartInsight(weightPoints, weeklyGlucose, weightTrendline, glucoseTrendline);
+}
+
+function calculateWeeklyGlucoseAverages() {
+    if (allData.length === 0) return [];
+
+    const weeklyData = {};
+    allData.forEach(d => {
+        const date = new Date(d.timestamp);
+        const day = date.getDay();
+        const monday = new Date(date);
+        monday.setDate(date.getDate() - (day === 0 ? 6 : day - 1));
+        monday.setHours(0, 0, 0, 0);
+        const weekKey = monday.toISOString().split('T')[0];
+
+        if (!weeklyData[weekKey]) weeklyData[weekKey] = [];
+        weeklyData[weekKey].push(d.glucose);
+    });
+
+    return Object.entries(weeklyData)
+        .map(([weekStart, values]) => ({
+            x: new Date(weekStart),
+            y: values.reduce((a, b) => a + b, 0) / values.length
+        }))
+        .sort((a, b) => a.x - b.x);
+}
+
+function calculateLinearTrendline(dataPoints) {
+    if (dataPoints.length < 2) return [];
+
+    const n = dataPoints.length;
+    const xValues = dataPoints.map(d => d.x.getTime());
+    const yValues = dataPoints.map(d => d.y);
+
+    const sumX = xValues.reduce((a, b) => a + b, 0);
+    const sumY = yValues.reduce((a, b) => a + b, 0);
+    const sumXY = xValues.reduce((sum, x, i) => sum + x * yValues[i], 0);
+    const sumXX = xValues.reduce((sum, x) => sum + x * x, 0);
+
+    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+
+    return [
+        { x: dataPoints[0].x, y: slope * xValues[0] + intercept },
+        { x: dataPoints[n - 1].x, y: slope * xValues[n - 1] + intercept }
+    ];
+}
+
+function generateChartInsight(weightPoints, glucosePoints, weightTrend, glucoseTrend) {
+    const insightEl = document.getElementById('chartInsight');
+    if (!insightEl) return;
+
+    if (weightPoints.length < 2) {
+        insightEl.innerHTML = '';
+        return;
+    }
+
+    const weightChange = weightTrend[1].y - weightTrend[0].y;
+    const weightTrending = weightChange < -1 ? 'decreasing' : (weightChange > 1 ? 'increasing' : 'stable');
+
+    let insight = '';
+    let isPositive = weightTrending === 'decreasing';
+
+    if (glucoseTrend.length >= 2) {
+        const glucoseChange = glucoseTrend[1].y - glucoseTrend[0].y;
+        const glucoseTrending = glucoseChange < -2 ? 'improving' : (glucoseChange > 2 ? 'rising' : 'stable');
+
+        if (weightTrending === 'decreasing' && glucoseTrending === 'improving') {
+            insight = `<h4>🎯 Positive Correlation Detected</h4>
+                <p>Your weight is trending down while your average glucose is improving. This suggests your metabolic health is responding positively to your weight loss efforts. Keep up the great work!</p>`;
+            isPositive = true;
+        } else if (weightTrending === 'decreasing' && glucoseTrending === 'stable') {
+            insight = `<h4>📊 Weight Decreasing, Glucose Stable</h4>
+                <p>Your weight is trending downward while glucose remains stable. As you continue losing weight, you may see further improvements in glucose control.</p>`;
+            isPositive = true;
+        } else if (weightTrending === 'stable') {
+            insight = `<h4>📈 Weight Stable</h4>
+                <p>Your weight has been relatively stable during this period. Consider reviewing your nutrition and activity patterns to reinvigorate your weight loss progress.</p>`;
+            isPositive = false;
+        } else {
+            insight = `<h4>📊 Tracking Your Progress</h4>
+                <p>Continue monitoring both weight and glucose trends. Consistent tracking helps identify patterns and opportunities for improvement.</p>`;
+        }
+    } else {
+        if (weightTrending === 'decreasing') {
+            insight = `<h4>✓ Weight Trending Down</h4>
+                <p>Your weight shows a downward trend. Add more CGM data to see how glucose correlates with your weight loss.</p>`;
+            isPositive = true;
+        } else {
+            insight = `<h4>📊 Tracking Started</h4>
+                <p>Continue tracking to build enough data for meaningful trend analysis.</p>`;
+        }
+    }
+
+    insightEl.innerHTML = insight;
+    insightEl.className = 'chart-insight' + (isPositive ? '' : ' negative');
+}
+
+// ============================================
+// HEALTH INSIGHTS CALCULATIONS
+// ============================================
+
+function renderHealthInsights() {
+    calculateGMI();
+    calculateCVInsight();
+    calculateFastingGlucoseInsight();
+    calculateRiskReduction();
+    analyzePatterns();
+}
+
+// GMI (Glucose Management Indicator) - Estimated A1C
+// Formula: GMI (%) = 3.31 + 0.02392 × (mean glucose in mg/dL)
+function calculateGMI() {
+    if (allData.length === 0) return;
+
+    const meanGlucose = allData.reduce((sum, d) => sum + d.glucose, 0) / allData.length;
+    const gmi = 3.31 + (0.02392 * meanGlucose);
+
+    document.getElementById('gmiValue').textContent = gmi.toFixed(1);
+    document.getElementById('gmiInfo').textContent = `Based on avg glucose: ${meanGlucose.toFixed(0)} mg/dL`;
+
+    let status, statusClass;
+    if (gmi < 5.7) {
+        status = 'Normal';
+        statusClass = 'normal';
+    } else if (gmi < 6.5) {
+        status = 'Prediabetes Range';
+        statusClass = 'warning';
+    } else {
+        status = 'Diabetes Range';
+        statusClass = 'danger';
+    }
+
+    const statusEl = document.getElementById('gmiStatus');
+    statusEl.textContent = status;
+    statusEl.className = 'insight-status ' + statusClass;
+}
+
+// CV% for Health Insights (different element IDs)
+function calculateCVInsight() {
+    if (allData.length === 0) return;
+
+    const values = allData.map(d => d.glucose);
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const squaredDiffs = values.map(v => Math.pow(v - mean, 2));
+    const variance = squaredDiffs.reduce((a, b) => a + b, 0) / values.length;
+    const stdDev = Math.sqrt(variance);
+    const cv = (stdDev / mean) * 100;
+
+    document.getElementById('cvValueInsight').textContent = cv.toFixed(1);
+
+    let status, statusClass;
+    if (cv <= 18) {
+        status = 'Excellent (healthy range)';
+        statusClass = 'normal';
+    } else if (cv <= 36) {
+        status = 'Stable';
+        statusClass = 'normal';
+    } else {
+        status = 'High Variability';
+        statusClass = 'warning';
+    }
+
+    const statusEl = document.getElementById('cvStatusInsight');
+    statusEl.textContent = status;
+    statusEl.className = 'insight-status ' + statusClass;
+}
+
+// Fasting Glucose for Health Insights
+function calculateFastingGlucoseInsight() {
+    if (allData.length === 0) return;
+
+    const fastingReadings = allData.filter(d => {
+        const hour = d.timestamp.getHours();
+        return hour >= 4 && hour <= 7;
+    });
+
+    if (fastingReadings.length === 0) {
+        document.getElementById('fastingValueInsight').textContent = 'N/A';
+        document.getElementById('fastingStatusInsight').textContent = 'No early morning data';
+        return;
+    }
+
+    const avgFasting = fastingReadings.reduce((sum, d) => sum + d.glucose, 0) / fastingReadings.length;
+
+    document.getElementById('fastingValueInsight').textContent = avgFasting.toFixed(0);
+
+    let status, statusClass;
+    if (avgFasting < 100) {
+        status = 'Normal';
+        statusClass = 'normal';
+    } else if (avgFasting < 126) {
+        status = 'Prediabetes Range';
+        statusClass = 'warning';
+    } else {
+        status = 'Elevated';
+        statusClass = 'danger';
+    }
+
+    const statusEl = document.getElementById('fastingStatusInsight');
+    statusEl.textContent = status;
+    statusEl.className = 'insight-status ' + statusClass;
+}
+
+// Disease Risk Reduction Calculations
+function calculateRiskReduction() {
+    const container = document.getElementById('riskReductionContent');
+
+    if (weightData.length < 2) {
+        container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">Need more weight data to calculate risk reduction estimates.</p>';
+        return;
+    }
+
+    const startWeight = weightData[0].weight;
+    const currentWeight = weightData[weightData.length - 1].weight;
+    const weightLostLbs = startWeight - currentWeight;
+    const weightLostKg = weightLostLbs * 0.453592;
+    const weightLostPercent = (weightLostLbs / startWeight) * 100;
+
+    const risks = [];
+
+    // Type 2 Diabetes Risk: 16% reduction per kg lost (capped at 90%)
+    if (weightLostKg > 0) {
+        const t2dReduction = Math.min(weightLostKg * 16, 90);
+        risks.push({
+            label: 'Type 2 Diabetes Progression',
+            value: t2dReduction,
+            basis: `Based on ${weightLostKg.toFixed(1)} kg weight loss (16% per kg)`
+        });
+    }
+
+    // Cardiovascular Risk
+    if (weightLostPercent >= 5) {
+        const cvdReduction = weightLostPercent >= 10 ? 20 : 12;
+        risks.push({
+            label: 'Cardiovascular Events',
+            value: cvdReduction,
+            basis: `Based on ${weightLostPercent.toFixed(1)}% weight loss (SELECT trial data)`
+        });
+    }
+
+    // NAFLD Risk
+    if (weightLostPercent >= 5) {
+        const nafldReduction = weightLostPercent >= 10 ? 40 : 25;
+        risks.push({
+            label: 'Fatty Liver Disease (NAFLD)',
+            value: nafldReduction,
+            basis: `Based on ${weightLostPercent.toFixed(1)}% weight loss + glucose stability`
+        });
+    }
+
+    // All-cause mortality
+    if (weightLostKg >= 2.5) {
+        risks.push({
+            label: 'All-Cause Mortality',
+            value: 15,
+            basis: 'Based on meta-analysis of 5.5kg+ intentional weight loss'
+        });
+    }
+
+    if (risks.length === 0) {
+        container.innerHTML = `
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                Risk reduction estimates become available after achieving measurable weight loss.
+                Continue your journey - every small step counts toward better health!
+            </p>
+        `;
+        return;
+    }
+
+    container.innerHTML = risks.map(r => `
+        <div class="risk-item">
+            <div class="risk-header">
+                <span class="risk-label">${r.label}</span>
+                <span class="risk-value">~${r.value.toFixed(0)}% ↓</span>
+            </div>
+            <div class="risk-bar">
+                <div class="risk-bar-fill" style="width: ${Math.min(r.value, 100)}%"></div>
+            </div>
+            <div class="risk-basis">${r.basis}</div>
+        </div>
+    `).join('');
+}
+
+// Pattern Analysis
+function analyzePatterns() {
+    analyzeDawnPhenomenon();
+    analyzePostMealSpikes();
+    analyzeTimeInOptimalRange();
+}
+
+// Dawn Phenomenon Detection
+function analyzeDawnPhenomenon() {
+    if (allData.length === 0) return;
+
+    const byDate = {};
+    allData.forEach(d => {
+        const dateKey = d.timestamp.toDateString();
+        if (!byDate[dateKey]) byDate[dateKey] = [];
+        byDate[dateKey].push(d);
+    });
+
+    let dawnRises = [];
+    Object.values(byDate).forEach(dayData => {
+        const nadirReadings = dayData.filter(d => {
+            const h = d.timestamp.getHours();
+            return h >= 3 && h <= 4;
+        });
+        const peakReadings = dayData.filter(d => {
+            const h = d.timestamp.getHours();
+            return h >= 6 && h <= 8;
+        });
+
+        if (nadirReadings.length > 0 && peakReadings.length > 0) {
+            const nadirAvg = nadirReadings.reduce((s, d) => s + d.glucose, 0) / nadirReadings.length;
+            const peakAvg = peakReadings.reduce((s, d) => s + d.glucose, 0) / peakReadings.length;
+            const rise = peakAvg - nadirAvg;
+            if (rise > 0) dawnRises.push(rise);
+        }
+    });
+
+    const iconEl = document.getElementById('dawnIcon');
+    const valueEl = document.getElementById('dawnValue');
+
+    if (dawnRises.length === 0) {
+        valueEl.textContent = 'Insufficient data';
+        iconEl.className = 'pattern-icon neutral';
+        return;
+    }
+
+    const avgRise = dawnRises.reduce((a, b) => a + b, 0) / dawnRises.length;
+    const dawnDetected = avgRise > 20;
+
+    if (dawnDetected) {
+        valueEl.textContent = `Detected (+${avgRise.toFixed(0)} mg/dL avg rise)`;
+        iconEl.className = 'pattern-icon warning';
+    } else {
+        valueEl.textContent = `Not detected (+${avgRise.toFixed(0)} mg/dL)`;
+        iconEl.className = 'pattern-icon good';
+    }
+}
+
+// Post-Meal Spike Analysis
+function analyzePostMealSpikes() {
+    if (allData.length === 0) return;
+
+    const spikeReadings = allData.filter(d => d.glucose > 140);
+    const totalReadings = allData.length;
+    const spikePercent = (spikeReadings.length / totalReadings) * 100;
+
+    const avgSpike = spikeReadings.length > 0
+        ? spikeReadings.reduce((s, d) => s + d.glucose, 0) / spikeReadings.length
+        : 0;
+
+    const iconEl = document.getElementById('spikeIcon');
+    const valueEl = document.getElementById('spikeValue');
+
+    if (spikePercent < 5) {
+        valueEl.textContent = `Low frequency (${spikePercent.toFixed(1)}% >140)`;
+        iconEl.className = 'pattern-icon good';
+    } else if (spikePercent < 15) {
+        valueEl.textContent = `Moderate (${spikePercent.toFixed(1)}% >140, avg ${avgSpike.toFixed(0)})`;
+        iconEl.className = 'pattern-icon neutral';
+    } else {
+        valueEl.textContent = `Frequent (${spikePercent.toFixed(1)}% >140, avg ${avgSpike.toFixed(0)})`;
+        iconEl.className = 'pattern-icon warning';
+    }
+}
+
+// Time in Optimal Range for Weight Loss (70-110 mg/dL)
+function analyzeTimeInOptimalRange() {
+    if (allData.length === 0) return;
+
+    const optimalReadings = allData.filter(d => d.glucose >= 70 && d.glucose <= 110);
+    const tirOptimal = (optimalReadings.length / allData.length) * 100;
+
+    const iconEl = document.getElementById('tirIcon');
+    const valueEl = document.getElementById('tirValueInsight');
+
+    if (tirOptimal >= 70) {
+        valueEl.textContent = `${tirOptimal.toFixed(0)}% in 70-110 (Excellent)`;
+        iconEl.className = 'pattern-icon good';
+    } else if (tirOptimal >= 50) {
+        valueEl.textContent = `${tirOptimal.toFixed(0)}% in 70-110 (Good)`;
+        iconEl.className = 'pattern-icon neutral';
+    } else {
+        valueEl.textContent = `${tirOptimal.toFixed(0)}% in 70-110 (Room to improve)`;
+        iconEl.className = 'pattern-icon warning';
+    }
+}
+
+// Weight Loss Milestones
+function renderMilestones() {
+    const container = document.getElementById('milestonesGrid');
+    if (!container || weightData.length === 0) return;
+
+    const startWeight = weightData[0].weight;
+    const currentWeight = weightData[weightData.length - 1].weight;
+    const lostPercent = ((startWeight - currentWeight) / startWeight) * 100;
+
+    const milestones = [
+        {
+            percent: 3,
+            label: 'Initial Benefits',
+            benefits: 'Improved triglycerides, initial glycemic benefits'
+        },
+        {
+            percent: 5,
+            label: 'Meaningful',
+            benefits: 'Better BP, improved HDL/LDL, enhanced insulin sensitivity'
+        },
+        {
+            percent: 7,
+            label: 'Significant',
+            benefits: '58% diabetes risk reduction, improved fasting glucose'
+        },
+        {
+            percent: 10,
+            label: 'Major',
+            benefits: 'Major CVD benefits, reduced inflammation markers'
+        },
+        {
+            percent: 15,
+            label: 'Transformative',
+            benefits: 'Sleep apnea improvement, transformative metabolic changes'
+        }
+    ];
+
+    let foundNext = false;
+    container.innerHTML = milestones.map(m => {
+        const targetWeight = startWeight * (1 - m.percent / 100);
+        const achieved = lostPercent >= m.percent;
+        const isNext = !achieved && !foundNext;
+        if (isNext) foundNext = true;
+
+        return `
+            <div class="milestone ${achieved ? 'achieved' : ''} ${isNext ? 'next' : ''}">
+                ${achieved ? '<span class="milestone-badge">Done</span>' : ''}
+                ${isNext ? '<span class="milestone-badge">Next</span>' : ''}
+                <div class="milestone-percent">${m.percent}%</div>
+                <div class="milestone-label">${m.label}</div>
+                <div class="milestone-weight">${targetWeight.toFixed(1)} lbs</div>
+                <div class="milestone-benefits">${m.benefits}</div>
+            </div>
+        `;
+    }).join('');
+}
