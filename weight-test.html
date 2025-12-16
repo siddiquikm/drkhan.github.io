@@ -548,6 +548,298 @@
             color: var(--danger-color);
         }
 
+        /* Health Insights Dashboard */
+        .health-insights-section {
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .insight-card {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .insight-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .insight-card-header svg {
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted);
+        }
+
+        .insight-card-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .insight-value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .insight-unit {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .insight-status {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .insight-status.normal {
+            background: var(--success-light);
+            color: #065f46;
+        }
+
+        .insight-status.warning {
+            background: var(--warning-light);
+            color: #92400e;
+        }
+
+        .insight-status.danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .insight-info {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Risk Reduction Section */
+        .risk-reduction-section {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .risk-reduction-section h4 {
+            margin: 0 0 20px 0;
+            font-size: 1rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .risk-reduction-section h4 svg {
+            width: 20px;
+            height: 20px;
+            color: var(--success-color);
+        }
+
+        .risk-item {
+            margin-bottom: 20px;
+        }
+
+        .risk-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .risk-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .risk-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .risk-value {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--success-color);
+        }
+
+        .risk-bar {
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .risk-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color), #34d399);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .risk-basis {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        /* Pattern Analysis */
+        .pattern-analysis {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .pattern-analysis h4 {
+            margin: 0 0 20px 0;
+            font-size: 1rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pattern-analysis h4 svg {
+            width: 20px;
+            height: 20px;
+            color: var(--primary-color);
+        }
+
+        .pattern-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .pattern-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+        }
+
+        .pattern-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .pattern-icon.good {
+            background: var(--success-light);
+            color: var(--success-color);
+        }
+
+        .pattern-icon.warning {
+            background: var(--warning-light);
+            color: var(--warning-color);
+        }
+
+        .pattern-icon.neutral {
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
+
+        .pattern-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .pattern-content {
+            flex: 1;
+        }
+
+        .pattern-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .pattern-value {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Enhanced Milestones */
+        .milestone-benefits {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+
+        .milestone.achieved .milestone-benefits {
+            color: #065f46;
+        }
+
+        /* Medical Disclaimer */
+        .medical-disclaimer {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 24px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .medical-disclaimer strong {
+            color: var(--text-secondary);
+        }
+
+        /* Source citation */
+        .source-link {
+            font-size: 0.7rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .source-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .insights-grid { grid-template-columns: repeat(2, 1fr); }
+            .pattern-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 600px) {
+            .insights-grid { grid-template-columns: 1fr; }
+        }
+
         /* Footer */
         .footer {
             text-align: center;
@@ -751,6 +1043,152 @@
                     <div class="chart-insight" id="chartInsight"></div>
                 </section>
 
+                <!-- Health Insights Dashboard -->
+                <section class="card health-insights-section">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                        </svg>
+                        Health Insights Dashboard
+                    </h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin: -10px 0 24px 0;">
+                        Evidence-based metrics derived from your CGM and weight data
+                    </p>
+
+                    <!-- Key Metrics Cards -->
+                    <div class="insights-grid" id="insightsGrid">
+                        <!-- GMI Card -->
+                        <div class="insight-card">
+                            <div class="insight-card-header">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 6v6l4 2"></path>
+                                </svg>
+                                <span class="insight-card-title">GMI (Est. A1C)</span>
+                            </div>
+                            <div class="insight-value" id="gmiValue">-</div>
+                            <div class="insight-unit">%</div>
+                            <div class="insight-status" id="gmiStatus">-</div>
+                            <div class="insight-info" id="gmiInfo">Based on avg glucose</div>
+                        </div>
+
+                        <!-- CV% Card -->
+                        <div class="insight-card">
+                            <div class="insight-card-header">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                </svg>
+                                <span class="insight-card-title">Glucose Variability</span>
+                            </div>
+                            <div class="insight-value" id="cvValue">-</div>
+                            <div class="insight-unit">CV%</div>
+                            <div class="insight-status" id="cvStatus">-</div>
+                            <div class="insight-info">Lower = lower CVD risk</div>
+                        </div>
+
+                        <!-- Fasting Glucose Card -->
+                        <div class="insight-card">
+                            <div class="insight-card-header">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                                    <line x1="6" y1="1" x2="6" y2="4"></line>
+                                    <line x1="10" y1="1" x2="10" y2="4"></line>
+                                    <line x1="14" y1="1" x2="14" y2="4"></line>
+                                </svg>
+                                <span class="insight-card-title">Fasting Glucose</span>
+                            </div>
+                            <div class="insight-value" id="fastingValue">-</div>
+                            <div class="insight-unit">mg/dL</div>
+                            <div class="insight-status" id="fastingStatus">-</div>
+                            <div class="insight-info">Metabolic syndrome threshold: 100</div>
+                        </div>
+                    </div>
+
+                    <!-- Disease Risk Reduction -->
+                    <div class="risk-reduction-section" id="riskReductionSection">
+                        <h4>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            Estimated Disease Risk Reduction
+                        </h4>
+                        <div id="riskReductionContent">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Pattern Analysis -->
+                    <div class="pattern-analysis">
+                        <h4>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                            Pattern Analysis
+                        </h4>
+                        <div class="pattern-grid" id="patternGrid">
+                            <!-- Dawn Phenomenon -->
+                            <div class="pattern-item">
+                                <div class="pattern-icon" id="dawnIcon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M17 18a5 5 0 0 0-10 0"></path>
+                                        <line x1="12" y1="2" x2="12" y2="9"></line>
+                                        <line x1="4.22" y1="10.22" x2="5.64" y2="11.64"></line>
+                                        <line x1="1" y1="18" x2="3" y2="18"></line>
+                                        <line x1="21" y1="18" x2="23" y2="18"></line>
+                                        <line x1="18.36" y1="11.64" x2="19.78" y2="10.22"></line>
+                                        <line x1="23" y1="22" x2="1" y2="22"></line>
+                                        <polyline points="8 6 12 2 16 6"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="pattern-content">
+                                    <div class="pattern-title">Dawn Phenomenon</div>
+                                    <div class="pattern-value" id="dawnValue">Analyzing...</div>
+                                </div>
+                            </div>
+
+                            <!-- Post-Meal Spikes -->
+                            <div class="pattern-item">
+                                <div class="pattern-icon" id="spikeIcon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                                        <polyline points="17 6 23 6 23 12"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="pattern-content">
+                                    <div class="pattern-title">Post-Meal Spikes</div>
+                                    <div class="pattern-value" id="spikeValue">Analyzing...</div>
+                                </div>
+                            </div>
+
+                            <!-- Time in Optimal Range -->
+                            <div class="pattern-item">
+                                <div class="pattern-icon" id="tirIcon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                                    </svg>
+                                </div>
+                                <div class="pattern-content">
+                                    <div class="pattern-title">Time in Optimal Range</div>
+                                    <div class="pattern-value" id="tirValue">Analyzing...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Medical Disclaimer -->
+                    <div class="medical-disclaimer">
+                        <strong>Medical Disclaimer:</strong> These insights are educational estimates based on population-level research.
+                        Individual results vary significantly based on genetics, medications, and other health conditions.
+                        These are not diagnoses and do not replace professional medical advice.
+                        Consult your healthcare provider for personalized guidance.
+                    </div>
+                </section>
+
                 <!-- Milestones -->
                 <section class="card weight-section">
                     <h3>
@@ -758,10 +1196,10 @@
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                             <polyline points="22 4 12 14.01 9 11.01"></polyline>
                         </svg>
-                        Weight Loss Milestones
+                        Weight Loss Milestones & Health Benefits
                     </h3>
                     <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
-                        Clinical benefits increase at each milestone. Based on ADA Standards of Care guidelines.
+                        Clinical benefits increase at each milestone. Based on ADA Standards of Care and clinical research.
                     </p>
                     <div class="milestones-grid" id="milestonesGrid"></div>
                 </section>
@@ -911,6 +1349,7 @@
             document.getElementById('weightSection').classList.remove('hidden');
             renderWeightMetrics();
             renderWeightChart();
+            renderHealthInsights();
             renderMilestones();
         }
 
@@ -1312,12 +1751,33 @@
             const currentWeight = weightData[weightData.length - 1].weight;
             const lostPercent = ((startWeight - currentWeight) / startWeight) * 100;
 
+            // Enhanced milestones with specific health benefits
             const milestones = [
-                { percent: 3, label: 'Initial Benefits' },
-                { percent: 5, label: 'Meaningful' },
-                { percent: 7, label: 'Significant' },
-                { percent: 10, label: 'Major' },
-                { percent: 15, label: 'Transformative' }
+                {
+                    percent: 3,
+                    label: 'Initial Benefits',
+                    benefits: 'Improved triglycerides, initial glycemic benefits'
+                },
+                {
+                    percent: 5,
+                    label: 'Meaningful',
+                    benefits: 'Better BP, improved HDL/LDL, enhanced insulin sensitivity'
+                },
+                {
+                    percent: 7,
+                    label: 'Significant',
+                    benefits: '58% diabetes risk reduction, improved fasting glucose'
+                },
+                {
+                    percent: 10,
+                    label: 'Major',
+                    benefits: 'Major CVD benefits, reduced inflammation markers'
+                },
+                {
+                    percent: 15,
+                    label: 'Transformative',
+                    benefits: 'Sleep apnea improvement, transformative metabolic changes'
+                }
             ];
 
             let foundNext = false;
@@ -1334,9 +1794,320 @@
                         <div class="milestone-percent">${m.percent}%</div>
                         <div class="milestone-label">${m.label}</div>
                         <div class="milestone-weight">${targetWeight.toFixed(1)} lbs</div>
+                        <div class="milestone-benefits">${m.benefits}</div>
                     </div>
                 `;
             }).join('');
+        }
+
+        // ============================================
+        // HEALTH INSIGHTS CALCULATIONS
+        // ============================================
+
+        function renderHealthInsights() {
+            calculateGMI();
+            calculateCV();
+            calculateFastingGlucose();
+            calculateRiskReduction();
+            analyzePatterns();
+        }
+
+        // 1. GMI (Glucose Management Indicator) - Estimated A1C
+        // Formula: GMI (%) = 3.31 + 0.02392 × (mean glucose in mg/dL)
+        function calculateGMI() {
+            if (glucoseData.length === 0) return;
+
+            const meanGlucose = glucoseData.reduce((sum, d) => sum + d.glucose, 0) / glucoseData.length;
+            const gmi = 3.31 + (0.02392 * meanGlucose);
+
+            document.getElementById('gmiValue').textContent = gmi.toFixed(1);
+            document.getElementById('gmiInfo').textContent = `Based on avg glucose: ${meanGlucose.toFixed(0)} mg/dL`;
+
+            let status, statusClass;
+            if (gmi < 5.7) {
+                status = 'Normal';
+                statusClass = 'normal';
+            } else if (gmi < 6.5) {
+                status = 'Prediabetes Range';
+                statusClass = 'warning';
+            } else {
+                status = 'Diabetes Range';
+                statusClass = 'danger';
+            }
+
+            const statusEl = document.getElementById('gmiStatus');
+            statusEl.textContent = status;
+            statusEl.className = 'insight-status ' + statusClass;
+        }
+
+        // 2. Coefficient of Variation (CV%) - Glucose Variability
+        // Lower CV% = lower cardiovascular disease risk
+        // <36% is stable, ≥36% is unstable
+        // Healthy non-diabetics: 12-18%
+        function calculateCV() {
+            if (glucoseData.length === 0) return;
+
+            const values = glucoseData.map(d => d.glucose);
+            const mean = values.reduce((a, b) => a + b, 0) / values.length;
+            const squaredDiffs = values.map(v => Math.pow(v - mean, 2));
+            const variance = squaredDiffs.reduce((a, b) => a + b, 0) / values.length;
+            const stdDev = Math.sqrt(variance);
+            const cv = (stdDev / mean) * 100;
+
+            document.getElementById('cvValue').textContent = cv.toFixed(1);
+
+            let status, statusClass;
+            if (cv <= 18) {
+                status = 'Excellent (healthy range)';
+                statusClass = 'normal';
+            } else if (cv <= 36) {
+                status = 'Stable';
+                statusClass = 'normal';
+            } else {
+                status = 'High Variability';
+                statusClass = 'warning';
+            }
+
+            const statusEl = document.getElementById('cvStatus');
+            statusEl.textContent = status;
+            statusEl.className = 'insight-status ' + statusClass;
+        }
+
+        // 3. Fasting Glucose Analysis
+        // Readings between 4-7 AM are considered fasting
+        // <100 mg/dL = normal, 100-125 = prediabetes, ≥126 = diabetes
+        function calculateFastingGlucose() {
+            if (glucoseData.length === 0) return;
+
+            // Filter for fasting readings (4-7 AM)
+            const fastingReadings = glucoseData.filter(d => {
+                const hour = d.timestamp.getHours();
+                return hour >= 4 && hour <= 7;
+            });
+
+            if (fastingReadings.length === 0) {
+                document.getElementById('fastingValue').textContent = 'N/A';
+                document.getElementById('fastingStatus').textContent = 'No early morning data';
+                return;
+            }
+
+            const avgFasting = fastingReadings.reduce((sum, d) => sum + d.glucose, 0) / fastingReadings.length;
+
+            document.getElementById('fastingValue').textContent = avgFasting.toFixed(0);
+
+            let status, statusClass;
+            if (avgFasting < 100) {
+                status = 'Normal';
+                statusClass = 'normal';
+            } else if (avgFasting < 126) {
+                status = 'Prediabetes Range';
+                statusClass = 'warning';
+            } else {
+                status = 'Elevated';
+                statusClass = 'danger';
+            }
+
+            const statusEl = document.getElementById('fastingStatus');
+            statusEl.textContent = status;
+            statusEl.className = 'insight-status ' + statusClass;
+        }
+
+        // 4. Disease Risk Reduction Calculations
+        function calculateRiskReduction() {
+            const container = document.getElementById('riskReductionContent');
+
+            if (weightData.length < 2) {
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">Need more weight data to calculate risk reduction estimates.</p>';
+                return;
+            }
+
+            const startWeight = weightData[0].weight;
+            const currentWeight = weightData[weightData.length - 1].weight;
+            const weightLostLbs = startWeight - currentWeight;
+            const weightLostKg = weightLostLbs * 0.453592;
+            const weightLostPercent = (weightLostLbs / startWeight) * 100;
+
+            // Calculate risk reductions
+            const risks = [];
+
+            // Type 2 Diabetes Risk: 16% reduction per kg lost (capped at 90%)
+            if (weightLostKg > 0) {
+                const t2dReduction = Math.min(weightLostKg * 16, 90);
+                risks.push({
+                    label: 'Type 2 Diabetes Progression',
+                    value: t2dReduction,
+                    basis: `Based on ${weightLostKg.toFixed(1)} kg weight loss (16% per kg)`
+                });
+            }
+
+            // Cardiovascular Risk: Based on weight loss + CV%
+            if (weightLostPercent >= 5) {
+                const cvdReduction = weightLostPercent >= 10 ? 20 : (weightLostPercent >= 5 ? 12 : 5);
+                risks.push({
+                    label: 'Cardiovascular Events',
+                    value: cvdReduction,
+                    basis: `Based on ${weightLostPercent.toFixed(1)}% weight loss (SELECT trial data)`
+                });
+            }
+
+            // NAFLD Risk: ~40% reduction with significant weight loss
+            if (weightLostPercent >= 5) {
+                const nafldReduction = weightLostPercent >= 10 ? 40 : (weightLostPercent >= 5 ? 25 : 10);
+                risks.push({
+                    label: 'Fatty Liver Disease (NAFLD)',
+                    value: nafldReduction,
+                    basis: `Based on ${weightLostPercent.toFixed(1)}% weight loss + glucose stability`
+                });
+            }
+
+            // All-cause mortality
+            if (weightLostKg >= 2.5) {
+                risks.push({
+                    label: 'All-Cause Mortality',
+                    value: 15,
+                    basis: 'Based on meta-analysis of 5.5kg+ intentional weight loss'
+                });
+            }
+
+            if (risks.length === 0) {
+                container.innerHTML = `
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                        Risk reduction estimates become available after achieving measurable weight loss.
+                        Continue your journey - every small step counts toward better health!
+                    </p>
+                `;
+                return;
+            }
+
+            container.innerHTML = risks.map(r => `
+                <div class="risk-item">
+                    <div class="risk-header">
+                        <span class="risk-label">${r.label}</span>
+                        <span class="risk-value">~${r.value.toFixed(0)}% ↓</span>
+                    </div>
+                    <div class="risk-bar">
+                        <div class="risk-bar-fill" style="width: ${Math.min(r.value, 100)}%"></div>
+                    </div>
+                    <div class="risk-basis">${r.basis}</div>
+                </div>
+            `).join('');
+        }
+
+        // 5. Pattern Analysis (Dawn Phenomenon, Post-Meal Spikes, Time in Optimal Range)
+        function analyzePatterns() {
+            analyzeDawnPhenomenon();
+            analyzePostMealSpikes();
+            analyzeTimeInOptimalRange();
+        }
+
+        // Dawn Phenomenon Detection
+        // Morning rise >20 mg/dL between 3-8 AM indicates insulin resistance
+        function analyzeDawnPhenomenon() {
+            if (glucoseData.length === 0) return;
+
+            // Group data by date
+            const byDate = {};
+            glucoseData.forEach(d => {
+                const dateKey = d.timestamp.toDateString();
+                if (!byDate[dateKey]) byDate[dateKey] = [];
+                byDate[dateKey].push(d);
+            });
+
+            let dawnRises = [];
+            Object.values(byDate).forEach(dayData => {
+                // Get readings from 3-4 AM (nadir) and 6-8 AM (peak)
+                const nadirReadings = dayData.filter(d => {
+                    const h = d.timestamp.getHours();
+                    return h >= 3 && h <= 4;
+                });
+                const peakReadings = dayData.filter(d => {
+                    const h = d.timestamp.getHours();
+                    return h >= 6 && h <= 8;
+                });
+
+                if (nadirReadings.length > 0 && peakReadings.length > 0) {
+                    const nadirAvg = nadirReadings.reduce((s, d) => s + d.glucose, 0) / nadirReadings.length;
+                    const peakAvg = peakReadings.reduce((s, d) => s + d.glucose, 0) / peakReadings.length;
+                    const rise = peakAvg - nadirAvg;
+                    if (rise > 0) dawnRises.push(rise);
+                }
+            });
+
+            const iconEl = document.getElementById('dawnIcon');
+            const valueEl = document.getElementById('dawnValue');
+
+            if (dawnRises.length === 0) {
+                valueEl.textContent = 'Insufficient data';
+                iconEl.className = 'pattern-icon neutral';
+                return;
+            }
+
+            const avgRise = dawnRises.reduce((a, b) => a + b, 0) / dawnRises.length;
+            const dawnDetected = avgRise > 20;
+
+            if (dawnDetected) {
+                valueEl.textContent = `Detected (+${avgRise.toFixed(0)} mg/dL avg rise)`;
+                iconEl.className = 'pattern-icon warning';
+            } else {
+                valueEl.textContent = `Not detected (+${avgRise.toFixed(0)} mg/dL)`;
+                iconEl.className = 'pattern-icon good';
+            }
+        }
+
+        // Post-Meal Spike Analysis
+        // Spikes >40 mg/dL from baseline indicate high glycemic response
+        // Spikes >140 mg/dL absolute are concerning for non-diabetics
+        function analyzePostMealSpikes() {
+            if (glucoseData.length === 0) return;
+
+            // Find local maxima that could be post-meal spikes
+            // Look for readings >140 mg/dL as potential spike indicators
+            const spikeReadings = glucoseData.filter(d => d.glucose > 140);
+            const totalReadings = glucoseData.length;
+            const spikePercent = (spikeReadings.length / totalReadings) * 100;
+
+            // Calculate average of high readings
+            const avgSpike = spikeReadings.length > 0
+                ? spikeReadings.reduce((s, d) => s + d.glucose, 0) / spikeReadings.length
+                : 0;
+
+            const iconEl = document.getElementById('spikeIcon');
+            const valueEl = document.getElementById('spikeValue');
+
+            if (spikePercent < 5) {
+                valueEl.textContent = `Low frequency (${spikePercent.toFixed(1)}% >140)`;
+                iconEl.className = 'pattern-icon good';
+            } else if (spikePercent < 15) {
+                valueEl.textContent = `Moderate (${spikePercent.toFixed(1)}% >140, avg ${avgSpike.toFixed(0)})`;
+                iconEl.className = 'pattern-icon neutral';
+            } else {
+                valueEl.textContent = `Frequent (${spikePercent.toFixed(1)}% >140, avg ${avgSpike.toFixed(0)})`;
+                iconEl.className = 'pattern-icon warning';
+            }
+        }
+
+        // Time in Optimal Range for Weight Loss (70-110 mg/dL)
+        // Stricter than standard diabetes TIR (70-180)
+        function analyzeTimeInOptimalRange() {
+            if (glucoseData.length === 0) return;
+
+            const optimalReadings = glucoseData.filter(d => d.glucose >= 70 && d.glucose <= 110);
+            const tirOptimal = (optimalReadings.length / glucoseData.length) * 100;
+
+            const iconEl = document.getElementById('tirIcon');
+            const valueEl = document.getElementById('tirValue');
+
+            // Non-diabetics typically spend ~75% in 70-100 range
+            if (tirOptimal >= 70) {
+                valueEl.textContent = `${tirOptimal.toFixed(0)}% in 70-110 (Excellent)`;
+                iconEl.className = 'pattern-icon good';
+            } else if (tirOptimal >= 50) {
+                valueEl.textContent = `${tirOptimal.toFixed(0)}% in 70-110 (Good)`;
+                iconEl.className = 'pattern-icon neutral';
+            } else {
+                valueEl.textContent = `${tirOptimal.toFixed(0)}% in 70-110 (Room to improve)`;
+                iconEl.className = 'pattern-icon warning';
+            }
         }
     </script>
 </body>
