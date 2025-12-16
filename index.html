@@ -501,14 +501,21 @@
 
                 <!-- Health Insights Dashboard -->
                 <section class="card health-insights-section">
-                    <h3>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-                        </svg>
-                        Health Insights Dashboard
-                    </h3>
+                    <div class="section-header">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                            </svg>
+                            Health Insights Dashboard
+                        </h3>
+                        <div class="insights-period" id="insightsPeriod">
+                            <span class="period-label">Period:</span>
+                            <span class="period-value" id="insightsPeriodValue">All Data</span>
+                        </div>
+                    </div>
                     <p style="color: var(--text-secondary); font-size: 0.9rem; margin: -10px 0 24px 0;">
                         Evidence-based metrics derived from your CGM and weight data
+                        <span class="period-note" id="periodNote">(min. 14 days for reliable GMI)</span>
                     </p>
 
                     <!-- Key Metrics Cards -->

@@ -1409,6 +1409,37 @@ body {
     }
 }
 
+/* Health Insights Period Indicator */
+.insights-period {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+}
+
+.insights-period .period-label {
+    color: var(--text-muted);
+}
+
+.insights-period .period-value {
+    background: var(--primary-color);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 0.8rem;
+}
+
+.period-note {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.period-warning {
+    color: var(--warning-color);
+}
+
 /* ============================================
    PORTAL ENHANCEMENTS - Navigation, Modals, Footer
    ============================================ */
