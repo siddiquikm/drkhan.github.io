@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CGM Portal - Physician Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                    <h1>CGM Portal</h1>
+                </div>
+                <div class="header-subtitle">Continuous Glucose Monitoring for Weight Loss</div>
+            </div>
+            <div class="header-actions">
+                <button id="exportPdfBtn" class="btn btn-secondary" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="12" y1="18" x2="12" y2="12"></line>
+                        <line x1="9" y1="15" x2="15" y2="15"></line>
+                    </svg>
+                    Export PDF
+                </button>
+            </div>
+        </header>
+
+        <!-- Upload Section -->
+        <section id="uploadSection" class="upload-section">
+            <div class="upload-card">
+                <div class="upload-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                </div>
+                <h2>Upload Signos CGM Data</h2>
+                <p>Upload your glucose_readings.csv file exported from Signos</p>
+                <div class="upload-area" id="dropZone">
+                    <input type="file" id="fileInput" accept=".csv" hidden>
+                    <p>Drag and drop your CSV file here, or</p>
+                    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                        Browse Files
+                    </button>
+                </div>
+                <div class="upload-note">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span>All data is processed locally in your browser. No data is sent to any server.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard (hidden until data is loaded) -->
+        <main id="dashboard" class="dashboard hidden">
+            <!-- Patient Info Bar -->
+            <section class="patient-info-bar">
+                <div class="patient-details">
+                    <div class="info-item">
+                        <span class="info-label">Data Range</span>
+                        <span class="info-value" id="dateRange">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Total Days</span>
+                        <span class="info-value" id="totalDays">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Data Coverage</span>
+                        <span class="info-value" id="dataCoverage">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Total Readings</span>
+                        <span class="info-value" id="totalReadings">-</span>
+                    </div>
+                </div>
+                <button class="btn btn-outline" onclick="resetDashboard()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    Load New Data
+                </button>
+            </section>
+
+            <!-- Time Period Comparison Selector -->
+            <section class="comparison-selector card">
+                <h3>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    Time Period Comparison
+                </h3>
+                <div class="comparison-controls">
+                    <div class="quick-select">
+                        <label>Quick Select:</label>
+                        <div class="btn-group">
+                            <button class="btn btn-sm" data-period="week" onclick="selectPeriod('week')">Week</button>
+                            <button class="btn btn-sm" data-period="month" onclick="selectPeriod('month')">Month</button>
+                            <button class="btn btn-sm" data-period="quarter" onclick="selectPeriod('quarter')">Quarter</button>
+                            <button class="btn btn-sm active" data-period="all" onclick="selectPeriod('all')">All Data</button>
+                        </div>
+                    </div>
+                    <div class="custom-range">
+                        <div class="range-group">
+                            <label>Current Period:</label>
+                            <input type="date" id="currentStart" class="date-input">
+                            <span>to</span>
+                            <input type="date" id="currentEnd" class="date-input">
+                        </div>
+                        <div class="range-group">
+                            <label>Compare To:</label>
+                            <input type="date" id="compareStart" class="date-input">
+                            <span>to</span>
+                            <input type="date" id="compareEnd" class="date-input">
+                        </div>
+                        <button class="btn btn-primary" onclick="applyComparison()">Compare</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Key Metrics Cards -->
+            <section class="metrics-grid">
+                <div class="metric-card" id="avgGlucoseCard">
+                    <div class="metric-header">
+                        <span class="metric-title">Average Glucose</span>
+                        <span class="metric-change" id="avgGlucoseChange"></span>
+                    </div>
+                    <div class="metric-value" id="avgGlucose">-</div>
+                    <div class="metric-unit">mg/dL</div>
+                    <div class="metric-status" id="avgGlucoseStatus"></div>
+                    <div class="metric-target">Target: 79-100 mg/dL</div>
+                    <div class="metric-comparison" id="avgGlucoseCompare"></div>
+                </div>
+
+                <div class="metric-card" id="variabilityCard">
+                    <div class="metric-header">
+                        <span class="metric-title">Glucose Variability (CV)</span>
+                        <span class="metric-change" id="variabilityChange"></span>
+                    </div>
+                    <div class="metric-value" id="variability">-</div>
+                    <div class="metric-unit">%</div>
+                    <div class="metric-status" id="variabilityStatus"></div>
+                    <div class="metric-target">Target: &lt;36%</div>
+                    <div class="metric-comparison" id="variabilityCompare"></div>
+                </div>
+
+                <div class="metric-card" id="tirCard">
+                    <div class="metric-header">
+                        <span class="metric-title">Time in Optimal Range</span>
+                        <span class="metric-change" id="tirChange"></span>
+                    </div>
+                    <div class="metric-value" id="tir">-</div>
+                    <div class="metric-unit">%</div>
+                    <div class="metric-status" id="tirStatus"></div>
+                    <div class="metric-target">Target: 70-110 mg/dL, &gt;70%</div>
+                    <div class="metric-comparison" id="tirCompare"></div>
+                </div>
+
+                <div class="metric-card" id="fastingCard">
+                    <div class="metric-header">
+                        <span class="metric-title">Fasting Glucose</span>
+                        <span class="metric-change" id="fastingChange"></span>
+                    </div>
+                    <div class="metric-value" id="fasting">-</div>
+                    <div class="metric-unit">mg/dL</div>
+                    <div class="metric-status" id="fastingStatus"></div>
+                    <div class="metric-target">Target: 70-99 mg/dL</div>
+                    <div class="metric-comparison" id="fastingCompare"></div>
+                </div>
+            </section>
+
+            <!-- Time in Range Breakdown -->
+            <section class="card tir-section">
+                <h3>Time in Range Distribution</h3>
+                <div class="tir-content">
+                    <div class="tir-chart-container">
+                        <canvas id="tirChart"></canvas>
+                    </div>
+                    <div class="tir-legend">
+                        <div class="tir-legend-item">
+                            <span class="tir-color tir-high"></span>
+                            <span class="tir-label">High (&gt;140 mg/dL)</span>
+                            <span class="tir-value" id="tirHigh">-</span>
+                        </div>
+                        <div class="tir-legend-item">
+                            <span class="tir-color tir-elevated"></span>
+                            <span class="tir-label">Elevated (110-140 mg/dL)</span>
+                            <span class="tir-value" id="tirElevated">-</span>
+                        </div>
+                        <div class="tir-legend-item">
+                            <span class="tir-color tir-optimal"></span>
+                            <span class="tir-label">Optimal (70-110 mg/dL)</span>
+                            <span class="tir-value" id="tirOptimal">-</span>
+                        </div>
+                        <div class="tir-legend-item">
+                            <span class="tir-color tir-low"></span>
+                            <span class="tir-label">Low (&lt;70 mg/dL)</span>
+                            <span class="tir-value" id="tirLow">-</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="tir-comparison" id="tirComparisonBars"></div>
+            </section>
+
+            <!-- AGP Chart -->
+            <section class="card agp-section">
+                <div class="section-header">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg>
+                        24-Hour Glucose Profile (AGP)
+                    </h3>
+                    <div class="agp-legend">
+                        <span class="legend-item"><span class="legend-line solid"></span> Median</span>
+                        <span class="legend-item"><span class="legend-area dark"></span> 25th-75th %ile</span>
+                        <span class="legend-item"><span class="legend-area light"></span> 10th-90th %ile</span>
+                    </div>
+                </div>
+                <div class="agp-chart-container">
+                    <canvas id="agpChart"></canvas>
+                </div>
+                <div class="agp-context">
+                    <div class="context-item">
+                        <span class="context-icon optimal"></span>
+                        <span>Optimal Range (70-110 mg/dL) - Ideal for metabolic health and weight loss</span>
+                    </div>
+                    <div class="context-item">
+                        <span class="context-icon elevated"></span>
+                        <span>Elevated Range (110-140 mg/dL) - May trigger increased insulin response</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Daily Patterns -->
+            <section class="card daily-section">
+                <h3>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    Daily Glucose Patterns
+                </h3>
+                <div class="daily-chart-container">
+                    <canvas id="dailyChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Long-term Progress -->
+            <section class="card progress-section">
+                <div class="section-header">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                            <polyline points="17 6 23 6 23 12"></polyline>
+                        </svg>
+                        Long-Term Progress
+                    </h3>
+                    <div class="progress-metric-selector">
+                        <label>Show:</label>
+                        <select id="progressMetric" onchange="updateProgressChart()">
+                            <option value="avgGlucose">Average Glucose</option>
+                            <option value="cv">Glucose Variability (CV%)</option>
+                            <option value="tir">Time in Optimal Range</option>
+                            <option value="fasting">Fasting Glucose</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="progress-chart-container">
+                    <canvas id="progressChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Improvement Summary Table -->
+            <section class="card summary-section">
+                <h3>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Improvement Summary
+                </h3>
+                <div class="summary-table-container">
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>First Week</th>
+                                <th>Previous Period</th>
+                                <th>Current Period</th>
+                                <th>Overall Change</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summaryTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Weight Loss Context -->
+            <section class="card context-section">
+                <h3>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    Understanding Your Metrics for Weight Loss
+                </h3>
+                <div class="context-grid">
+                    <div class="context-card">
+                        <h4>Average Glucose</h4>
+                        <p>Lower average glucose (79-100 mg/dL) indicates better insulin sensitivity, which helps your body burn fat more efficiently instead of storing it.</p>
+                    </div>
+                    <div class="context-card">
+                        <h4>Glucose Variability (CV)</h4>
+                        <p>Lower variability (&lt;36%) means more stable energy levels and fewer hunger cravings. Large glucose swings can trigger overeating and fat storage.</p>
+                    </div>
+                    <div class="context-card">
+                        <h4>Time in Optimal Range</h4>
+                        <p>Spending more time in the 70-110 mg/dL range supports metabolic health and indicates your body is efficiently processing carbohydrates.</p>
+                    </div>
+                    <div class="context-card">
+                        <h4>Fasting Glucose</h4>
+                        <p>Morning fasting glucose (70-99 mg/dL) reflects overnight metabolic function and insulin sensitivity - key indicators for weight management.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>CGM Portal for Physician Review | Data processed locally - No information sent to servers</p>
+            <p class="disclaimer">This tool is for informational purposes only. CGM data should be interpreted in consultation with a healthcare provider.</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
