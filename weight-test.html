@@ -489,6 +489,65 @@
             letter-spacing: 1px;
         }
 
+        /* Custom chart legend */
+        .chart-legend-custom {
+            display: flex;
+            gap: 24px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-item-custom {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-line-custom {
+            width: 20px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        .legend-dash-custom {
+            width: 20px;
+            height: 2px;
+        }
+
+        /* Chart insight box */
+        .chart-insight {
+            margin-top: 16px;
+            padding: 16px;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-radius: 8px;
+            border-left: 4px solid var(--success-color);
+        }
+
+        .chart-insight h4 {
+            margin: 0 0 8px 0;
+            font-size: 0.9rem;
+            color: var(--success-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-insight p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .chart-insight.negative {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border-left-color: var(--danger-color);
+        }
+
+        .chart-insight.negative h4 {
+            color: var(--danger-color);
+        }
+
         /* Footer */
         .footer {
             text-align: center;
@@ -660,7 +719,7 @@
                     </div>
                 </section>
 
-                <!-- Weight Trend Chart (Clean line with trendline - like Long-term Progress) -->
+                <!-- Weight & Glucose Correlation Chart -->
                 <section class="card weight-section">
                     <div class="section-header">
                         <h3>
@@ -668,19 +727,28 @@
                                 <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
                                 <polyline points="17 6 23 6 23 12"></polyline>
                             </svg>
-                            Weight Progress Over Time
+                            Weight & Glucose Correlation
                         </h3>
-                        <div>
-                            <select id="weightChartView" onchange="updateWeightChart()" style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 6px;">
-                                <option value="weight">Weight (lbs)</option>
-                                <option value="change">Change from Start (lbs)</option>
-                                <option value="percent">Change from Start (%)</option>
-                            </select>
+                        <div class="chart-legend-custom">
+                            <span class="legend-item-custom">
+                                <span class="legend-line-custom" style="background: #059669;"></span>
+                                <span class="legend-dash-custom" style="background: linear-gradient(90deg, #059669 50%, transparent 50%); background-size: 8px 2px;"></span>
+                                Weight
+                            </span>
+                            <span class="legend-item-custom">
+                                <span class="legend-line-custom" style="background: #2563eb;"></span>
+                                <span class="legend-dash-custom" style="background: linear-gradient(90deg, #2563eb 50%, transparent 50%); background-size: 8px 2px;"></span>
+                                Avg Glucose
+                            </span>
                         </div>
                     </div>
-                    <div class="chart-container">
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin: -10px 0 20px 0;">
+                        See how weight loss correlates with improved glucose control over time
+                    </p>
+                    <div class="chart-container" style="height: 350px;">
                         <canvas id="weightChart"></canvas>
                     </div>
+                    <div class="chart-insight" id="chartInsight"></div>
                 </section>
 
                 <!-- Milestones -->
@@ -935,74 +1003,93 @@
 
         function updateWeightChart() {
             const ctx = document.getElementById('weightChart').getContext('2d');
-            const view = document.getElementById('weightChartView').value;
 
             if (weightChart) {
                 weightChart.destroy();
             }
 
-            const startWeight = weightData[0].weight;
+            // Prepare weight data points
+            const weightPoints = weightData.map(d => ({
+                x: d.timestamp,
+                y: d.weight
+            }));
 
-            // Prepare data based on view
-            let dataPoints, label, color;
+            // Calculate weekly average glucose data aligned with weight measurements
+            const weeklyGlucose = calculateWeeklyGlucoseAverages();
 
-            switch (view) {
-                case 'change':
-                    dataPoints = weightData.map(d => ({
-                        x: d.timestamp,
-                        y: d.weight - startWeight
-                    }));
-                    label = 'Change from Start (lbs)';
-                    color = '#059669';
-                    break;
-                case 'percent':
-                    dataPoints = weightData.map(d => ({
-                        x: d.timestamp,
-                        y: ((d.weight - startWeight) / startWeight) * 100
-                    }));
-                    label = 'Change from Start (%)';
-                    color = '#8b5cf6';
-                    break;
-                default:
-                    dataPoints = weightData.map(d => ({
-                        x: d.timestamp,
-                        y: d.weight
-                    }));
-                    label = 'Weight (lbs)';
-                    color = '#059669';
-            }
+            // Calculate trendlines for both
+            const weightTrendline = calculateTrendline(weightPoints);
+            const glucoseTrendline = weeklyGlucose.length >= 2 ? calculateTrendline(weeklyGlucose) : [];
 
-            // Calculate trendline
-            const trendline = calculateTrendline(dataPoints);
+            const datasets = [
+                // Weight line (left axis)
+                {
+                    label: 'Weight (lbs)',
+                    data: weightPoints,
+                    borderColor: '#059669',
+                    backgroundColor: 'rgba(5, 150, 105, 0.08)',
+                    borderWidth: 2.5,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    pointHoverBackgroundColor: '#059669',
+                    fill: true,
+                    tension: 0.4,
+                    yAxisID: 'y'
+                },
+                // Weight trendline
+                {
+                    label: 'Weight Trend',
+                    data: weightTrendline,
+                    borderColor: '#059669',
+                    borderWidth: 2,
+                    borderDash: [8, 4],
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0,
+                    yAxisID: 'y'
+                }
+            ];
 
-            weightChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: [
+            // Add glucose data if available
+            if (weeklyGlucose.length > 0) {
+                datasets.push(
+                    // Glucose line (right axis)
+                    {
+                        label: 'Avg Glucose (mg/dL)',
+                        data: weeklyGlucose,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                        borderWidth: 2.5,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: '#2563eb',
+                        fill: true,
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }
+                );
+
+                if (glucoseTrendline.length > 0) {
+                    datasets.push(
+                        // Glucose trendline
                         {
-                            label: label,
-                            data: dataPoints,
-                            borderColor: color,
-                            backgroundColor: color + '15',
-                            borderWidth: 2,
-                            pointRadius: 0,  // No dots!
-                            pointHoverRadius: 6,
-                            pointHoverBackgroundColor: color,
-                            fill: true,
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Trend',
-                            data: trendline,
-                            borderColor: '#94a3b8',
+                            label: 'Glucose Trend',
+                            data: glucoseTrendline,
+                            borderColor: '#2563eb',
                             borderWidth: 2,
                             borderDash: [8, 4],
                             pointRadius: 0,
                             fill: false,
-                            tension: 0
+                            tension: 0,
+                            yAxisID: 'y1'
                         }
-                    ]
-                },
+                    );
+                }
+            }
+
+            weightChart = new Chart(ctx, {
+                type: 'line',
+                data: { datasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
@@ -1012,28 +1099,42 @@
                     },
                     plugins: {
                         legend: {
-                            display: true,
-                            position: 'top'
+                            display: false  // Using custom legend
                         },
                         tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            titleColor: '#1e293b',
+                            bodyColor: '#475569',
+                            borderColor: '#e2e8f0',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: true,
                             callbacks: {
                                 title: (context) => {
                                     const date = new Date(context[0].raw.x);
                                     return date.toLocaleDateString('en-US', {
-                                        weekday: 'short',
+                                        weekday: 'long',
                                         month: 'short',
-                                        day: 'numeric'
+                                        day: 'numeric',
+                                        year: 'numeric'
                                     });
                                 },
                                 label: (context) => {
-                                    if (context.datasetIndex === 0) {
-                                        const val = context.raw.y.toFixed(1);
-                                        return `${label}: ${val}`;
+                                    // Only show actual data, not trendlines
+                                    if (context.dataset.label.includes('Trend')) {
+                                        return null;
+                                    }
+                                    const val = context.raw.y.toFixed(1);
+                                    if (context.dataset.label.includes('Weight')) {
+                                        return ` Weight: ${val} lbs`;
+                                    }
+                                    if (context.dataset.label.includes('Glucose')) {
+                                        return ` Avg Glucose: ${val} mg/dL`;
                                     }
                                     return null;
                                 }
                             },
-                            filter: (item) => item.datasetIndex === 0
+                            filter: (item) => !item.dataset.label.includes('Trend')
                         }
                     },
                     scales: {
@@ -1047,16 +1148,137 @@
                             },
                             grid: {
                                 display: false
+                            },
+                            ticks: {
+                                font: { size: 11 },
+                                color: '#94a3b8'
                             }
                         },
                         y: {
+                            type: 'linear',
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Weight (lbs)',
+                                color: '#059669',
+                                font: { size: 12, weight: '600' }
+                            },
                             grid: {
-                                color: 'rgba(0, 0, 0, 0.05)'
+                                color: 'rgba(0, 0, 0, 0.04)'
+                            },
+                            ticks: {
+                                font: { size: 11 },
+                                color: '#059669'
                             }
-                        }
+                        },
+                        y1: weeklyGlucose.length > 0 ? {
+                            type: 'linear',
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Avg Glucose (mg/dL)',
+                                color: '#2563eb',
+                                font: { size: 12, weight: '600' }
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            ticks: {
+                                font: { size: 11 },
+                                color: '#2563eb'
+                            }
+                        } : undefined
                     }
                 }
             });
+
+            // Generate insight based on correlation
+            generateChartInsight(weightPoints, weeklyGlucose, weightTrendline, glucoseTrendline);
+        }
+
+        function calculateWeeklyGlucoseAverages() {
+            if (glucoseData.length === 0) return [];
+
+            // Group glucose by week
+            const weeklyData = {};
+            glucoseData.forEach(d => {
+                // Get the Monday of the week
+                const date = new Date(d.timestamp);
+                const day = date.getDay();
+                const monday = new Date(date);
+                monday.setDate(date.getDate() - (day === 0 ? 6 : day - 1));
+                monday.setHours(0, 0, 0, 0);
+                const weekKey = monday.toISOString().split('T')[0];
+
+                if (!weeklyData[weekKey]) {
+                    weeklyData[weekKey] = [];
+                }
+                weeklyData[weekKey].push(d.glucose);
+            });
+
+            // Calculate weekly averages
+            return Object.entries(weeklyData)
+                .map(([weekStart, values]) => ({
+                    x: new Date(weekStart),
+                    y: values.reduce((a, b) => a + b, 0) / values.length
+                }))
+                .sort((a, b) => a.x - b.x);
+        }
+
+        function generateChartInsight(weightPoints, glucosePoints, weightTrend, glucoseTrend) {
+            const insightEl = document.getElementById('chartInsight');
+
+            if (weightPoints.length < 2) {
+                insightEl.innerHTML = '';
+                return;
+            }
+
+            const weightStart = weightPoints[0].y;
+            const weightEnd = weightPoints[weightPoints.length - 1].y;
+            const weightChange = weightEnd - weightStart;
+            const weightChangePercent = ((weightChange / weightStart) * 100).toFixed(1);
+
+            let glucoseInsight = '';
+            let isPositive = weightChange <= 0;
+
+            if (glucosePoints.length >= 2) {
+                const glucoseStart = glucosePoints[0].y;
+                const glucoseEnd = glucosePoints[glucosePoints.length - 1].y;
+                const glucoseChange = glucoseEnd - glucoseStart;
+                const glucoseChangePercent = ((glucoseChange / glucoseStart) * 100).toFixed(1);
+
+                if (weightChange < 0 && glucoseChange < 0) {
+                    glucoseInsight = `As your weight decreased by ${Math.abs(weightChangePercent)}%, your average glucose also improved by ${Math.abs(glucoseChangePercent)}%. This shows a positive correlation between weight loss and better glucose control.`;
+                    isPositive = true;
+                } else if (weightChange < 0 && glucoseChange >= 0) {
+                    glucoseInsight = `Your weight decreased by ${Math.abs(weightChangePercent)}%, but average glucose increased slightly by ${Math.abs(glucoseChangePercent)}%. Glucose can be affected by many factors beyond weight. Continue monitoring for longer-term trends.`;
+                    isPositive = true;
+                } else if (weightChange >= 0 && glucoseChange < 0) {
+                    glucoseInsight = `While weight remained stable or increased slightly, your glucose improved by ${Math.abs(glucoseChangePercent)}%. This could indicate improved metabolic health from other lifestyle factors.`;
+                    isPositive = true;
+                } else {
+                    glucoseInsight = `Both weight and glucose showed increases during this period. Consider reviewing diet and activity patterns to identify opportunities for improvement.`;
+                    isPositive = false;
+                }
+            } else {
+                glucoseInsight = weightChange < 0
+                    ? `Your weight has decreased by ${Math.abs(weightChangePercent)}% (${Math.abs(weightChange).toFixed(1)} lbs). Weight loss typically leads to improved insulin sensitivity and better glucose control over time.`
+                    : `Weight has remained stable or increased slightly. Focus on consistent habits to support your metabolic health goals.`;
+            }
+
+            insightEl.className = `chart-insight ${isPositive ? '' : 'negative'}`;
+            insightEl.innerHTML = `
+                <h4>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                        ${isPositive
+                            ? '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>'
+                            : '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>'
+                        }
+                    </svg>
+                    ${isPositive ? 'Correlation Insight' : 'Area for Focus'}
+                </h4>
+                <p>${glucoseInsight}</p>
+            `;
         }
 
         function calculateTrendline(dataPoints) {
