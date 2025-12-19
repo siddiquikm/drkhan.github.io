@@ -2164,6 +2164,8 @@ async function handleLabFileSelect(event) {
 
 // Parse DEXA text - supports multiple providers
 function parseDexaText(text, filename) {
+    console.log('Starting DEXA text parsing...');
+
     const result = {
         date: null,
         provider: 'Unknown',
@@ -2180,9 +2182,10 @@ function parseDexaText(text, filename) {
         totalMass: null
     };
 
-    // Detect provider and extract date
-    if (text.includes('Live Lean Rx') || text.includes('LiveLeanRx')) {
+    // Detect provider
+    if (text.includes('Live Lean Rx') || text.includes('LiveLeanRx') || text.includes('HEALTHIER LIFE')) {
         result.provider = 'Live Lean Rx';
+        console.log('Detected provider: Live Lean Rx');
     } else if (text.includes('DexaFit')) {
         result.provider = 'DexaFit';
     } else if (text.includes('BodySpec')) {
@@ -2191,20 +2194,97 @@ function parseDexaText(text, filename) {
         result.provider = 'Generic DEXA';
     }
 
-    // Extract date - try multiple formats
-    const datePatterns = [
-        /(?:Date|Scan Date|Test Date)[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
-        /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/,
-        /([A-Z][a-z]+ \d{1,2},? \d{4})/i
-    ];
+    // === LIVE LEAN RX SPECIFIC PARSING ===
+    if (result.provider === 'Live Lean Rx') {
+        console.log('Using Live Lean Rx parser...');
 
-    for (const pattern of datePatterns) {
-        const match = text.match(pattern);
-        if (match) {
-            const parsed = new Date(match[1]);
+        // Extract date from "Measured: 12/17/2025" or first date in data row
+        const measuredMatch = text.match(/Measured:\s*(\d{1,2}\/\d{1,2}\/\d{4})/);
+        if (measuredMatch) {
+            const parsed = new Date(measuredMatch[1]);
             if (!isNaN(parsed)) {
                 result.date = parsed.toISOString().split('T')[0];
-                break;
+                console.log('Found date:', result.date);
+            }
+        }
+
+        // Find the data row after "Measured Date   Total Body Fat %   Total Mass..."
+        // Format: 12/17/2025   23.9   228.8   54.6   166.0   8.1   174.2 lbs
+        // This matches: date, body fat %, total mass, fat mass, lean mass, bmc, fat free
+        const dataRowMatch = text.match(/(\d{1,2}\/\d{1,2}\/\d{4})\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*lbs/);
+        if (dataRowMatch) {
+            console.log('Found data row:', dataRowMatch[0]);
+            result.bodyFatPercent = parseFloat(dataRowMatch[2]);
+            result.totalMass = parseFloat(dataRowMatch[3]);
+            result.fatMass = parseFloat(dataRowMatch[4]);
+            result.leanMass = parseFloat(dataRowMatch[5]);
+            // dataRowMatch[6] is BMC, [7] is Fat Free
+
+            // Use this date if we didn't get one from Measured field
+            if (!result.date) {
+                const parsed = new Date(dataRowMatch[1]);
+                if (!isNaN(parsed)) {
+                    result.date = parsed.toISOString().split('T')[0];
+                }
+            }
+        }
+
+        // Extract Android fat: "Android   27.6%   18.0   5.0 lbs"
+        const androidMatch = text.match(/Android\s+([\d.]+)%/);
+        if (androidMatch) {
+            result.androidFat = parseFloat(androidMatch[1]);
+            console.log('Found android fat:', result.androidFat);
+        }
+
+        // Extract Gynoid fat: "Gynoid   23.5%   35.4"
+        const gynoidMatch = text.match(/Gynoid\s+([\d.]+)%/);
+        if (gynoidMatch) {
+            result.gynoidFat = parseFloat(gynoidMatch[1]);
+            console.log('Found gynoid fat:', result.gynoidFat);
+        }
+
+        // Calculate A/G ratio if both are present
+        if (result.androidFat && result.gynoidFat) {
+            result.agRatio = parseFloat((result.androidFat / result.gynoidFat).toFixed(2));
+            console.log('Calculated A/G ratio:', result.agRatio);
+        }
+
+        // Extract VAT (Visceral Adipose Tissue) - look for volume in cubic inches
+        // Format in VAT section: "12/17/2025   52.4   1.08   31.69" where 31.69 is volume
+        const vatMatch = text.match(/VAT[\s\S]*?(\d{1,2}\/\d{1,2}\/\d{4})\s+[\d.]+\s+([\d.]+)\s+([\d.]+)/);
+        if (vatMatch) {
+            // vatMatch[2] is fat mass in lbs, vatMatch[3] is volume in cubic inches
+            result.visceralFat = parseFloat(vatMatch[3]); // Using volume
+            console.log('Found VAT volume:', result.visceralFat);
+        }
+
+        console.log('Live Lean Rx parsing complete:', result);
+
+        // Return if we got the essential data
+        if (result.bodyFatPercent !== null) {
+            return result;
+        }
+    }
+
+    // === GENERIC PARSING (fallback for other providers) ===
+    console.log('Using generic parser...');
+
+    // Extract date - try multiple formats
+    if (!result.date) {
+        const datePatterns = [
+            /(?:Date|Scan Date|Test Date)[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+            /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/,
+            /([A-Z][a-z]+ \d{1,2},? \d{4})/i
+        ];
+
+        for (const pattern of datePatterns) {
+            const match = text.match(pattern);
+            if (match) {
+                const parsed = new Date(match[1]);
+                if (!isNaN(parsed)) {
+                    result.date = parsed.toISOString().split('T')[0];
+                    break;
+                }
             }
         }
     }
@@ -2217,7 +2297,8 @@ function parseDexaText(text, filename) {
     const fatPatterns = [
         /(?:Total|Body)\s*(?:Body\s*)?Fat\s*(?:Percent|%)[:\s]*(\d+\.?\d*)\s*%?/i,
         /(?:Body Fat|BF)[:\s]*(\d+\.?\d*)\s*%/i,
-        /(\d+\.?\d*)\s*%\s*(?:Total|Body)\s*Fat/i
+        /(\d+\.?\d*)\s*%\s*(?:Total|Body)\s*Fat/i,
+        /Total\s+(\d+\.?\d*)%/  // For "Total   23.9%" format
     ];
     for (const pattern of fatPatterns) {
         const match = text.match(pattern);
@@ -2229,8 +2310,8 @@ function parseDexaText(text, filename) {
 
     // Extract lean mass (lbs or kg)
     const leanPatterns = [
-        /(?:Lean|LBM|Lean Body Mass|Fat Free Mass)[:\s]*(\d+\.?\d*)\s*(?:lbs?|pounds?|kg)?/i,
-        /(\d+\.?\d*)\s*(?:lbs?|kg)?\s*(?:Lean|LBM)/i
+        /Lean\s*(?:Mass|Tissue)?\s*(?:\(lbs\))?\s*[\s:]+(\d+\.?\d*)\s*(?:lbs)?/i,
+        /(\d+\.?\d*)\s*lbs?\s*Lean/i
     ];
     for (const pattern of leanPatterns) {
         const match = text.match(pattern);
@@ -2242,8 +2323,8 @@ function parseDexaText(text, filename) {
 
     // Extract fat mass
     const fatMassPatterns = [
-        /(?:Fat Mass|Total Fat)[:\s]*(\d+\.?\d*)\s*(?:lbs?|pounds?|kg)?/i,
-        /(\d+\.?\d*)\s*(?:lbs?|kg)?\s*(?:Fat Mass)/i
+        /Fat\s*(?:Mass|Tissue)?\s*(?:\(lbs\))?\s*[\s:]+(\d+\.?\d*)\s*(?:lbs)?/i,
+        /(\d+\.?\d*)\s*lbs?\s*Fat\s*Mass/i
     ];
     for (const pattern of fatMassPatterns) {
         const match = text.match(pattern);
