@@ -2088,6 +2088,9 @@ async function handleDexaFileSelect(event) {
         console.log('Extracting text from PDF...');
         const text = await extractTextFromPDF(file);
         console.log('Extracted text length:', text.length);
+        console.log('=== EXTRACTED TEXT (first 3000 chars) ===');
+        console.log(text.substring(0, 3000));
+        console.log('=== END EXTRACTED TEXT ===');
         const dexaResult = parseDexaText(text, file.name);
         console.log('Parsed DEXA result:', dexaResult);
 
