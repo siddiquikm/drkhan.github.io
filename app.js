@@ -15,6 +15,66 @@ const TARGETS = {
     fasting: { excellent: [70, 85], good: [85, 99], fair: [99, 110], unit: 'mg/dL' }
 };
 
+// Toast notification system
+function showNotification(message, type = 'info') {
+    // Remove existing notification if any
+    const existing = document.querySelector('.toast-notification');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    toast.innerHTML = `
+        <span class="toast-message">${message}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+    `;
+
+    // Add styles if not already present
+    if (!document.getElementById('toast-styles')) {
+        const style = document.createElement('style');
+        style.id = 'toast-styles';
+        style.textContent = `
+            .toast-notification {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                animation: slideIn 0.3s ease;
+            }
+            .toast-info { background: #3b82f6; }
+            .toast-success { background: #10b981; }
+            .toast-error { background: #ef4444; }
+            .toast-close {
+                background: none;
+                border: none;
+                color: white;
+                font-size: 20px;
+                cursor: pointer;
+                padding: 0;
+                line-height: 1;
+            }
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    document.body.appendChild(toast);
+
+    // Auto-remove after delay (longer for errors)
+    const delay = type === 'error' ? 5000 : 3000;
+    setTimeout(() => toast.remove(), delay);
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     setupFileUpload();
