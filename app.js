@@ -19,6 +19,7 @@ const TARGETS = {
 document.addEventListener('DOMContentLoaded', () => {
     setupFileUpload();
     setupModalListeners();
+    initDexaLabInputs();
 });
 
 // ============================================
@@ -1956,14 +1957,21 @@ const BIOMARKER_REFERENCE = {
 
 // Initialize DEXA and Lab file inputs
 function initDexaLabInputs() {
+    console.log('Initializing DEXA/Lab inputs...');
     const dexaInput = document.getElementById('dexaInput');
     const labInput = document.getElementById('labInput');
 
     if (dexaInput) {
+        console.log('DEXA input found, adding listener');
         dexaInput.addEventListener('change', handleDexaFileSelect);
+    } else {
+        console.log('DEXA input not found');
     }
     if (labInput) {
+        console.log('Lab input found, adding listener');
         labInput.addEventListener('change', handleLabFileSelect);
+    } else {
+        console.log('Lab input not found');
     }
 
     // Show sections if data exists
@@ -1980,8 +1988,18 @@ function updateDexaLabVisibility() {
 
 // Extract text from PDF using PDF.js
 async function extractTextFromPDF(file) {
+    // Check if PDF.js is loaded
+    if (typeof pdfjsLib === 'undefined') {
+        throw new Error('PDF.js library not loaded. Please refresh the page.');
+    }
+
+    console.log('PDF.js version:', pdfjsLib.version);
     const arrayBuffer = await file.arrayBuffer();
+    console.log('ArrayBuffer size:', arrayBuffer.byteLength);
+
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    console.log('PDF loaded, pages:', pdf.numPages);
+
     let fullText = '';
 
     for (let i = 1; i <= pdf.numPages; i++) {
@@ -1989,6 +2007,7 @@ async function extractTextFromPDF(file) {
         const textContent = await page.getTextContent();
         const pageText = textContent.items.map(item => item.str).join(' ');
         fullText += pageText + '\n';
+        console.log(`Page ${i} extracted, length: ${pageText.length}`);
     }
 
     return fullText;
@@ -1996,13 +2015,21 @@ async function extractTextFromPDF(file) {
 
 // Handle DEXA file upload
 async function handleDexaFileSelect(event) {
+    console.log('DEXA file select triggered', event);
     const file = event.target.files[0];
-    if (!file) return;
+    if (!file) {
+        console.log('No file selected');
+        return;
+    }
+    console.log('Processing file:', file.name, file.type, file.size);
 
     try {
         showNotification('Processing DEXA scan...', 'info');
+        console.log('Extracting text from PDF...');
         const text = await extractTextFromPDF(file);
+        console.log('Extracted text length:', text.length);
         const dexaResult = parseDexaText(text, file.name);
+        console.log('Parsed DEXA result:', dexaResult);
 
         if (dexaResult) {
             // Check for duplicate dates
@@ -2022,6 +2049,7 @@ async function handleDexaFileSelect(event) {
         }
     } catch (error) {
         console.error('DEXA parsing error:', error);
+        console.error('Error stack:', error.stack);
         showNotification('Error processing DEXA file: ' + error.message, 'error');
     }
 
@@ -2030,13 +2058,21 @@ async function handleDexaFileSelect(event) {
 
 // Handle Lab file upload
 async function handleLabFileSelect(event) {
+    console.log('Lab file select triggered', event);
     const file = event.target.files[0];
-    if (!file) return;
+    if (!file) {
+        console.log('No file selected');
+        return;
+    }
+    console.log('Processing file:', file.name, file.type, file.size);
 
     try {
         showNotification('Processing lab report...', 'info');
+        console.log('Extracting text from PDF...');
         const text = await extractTextFromPDF(file);
+        console.log('Extracted text length:', text.length);
         const labResult = parseLabText(text, file.name);
+        console.log('Parsed lab result:', labResult);
 
         if (labResult && Object.keys(labResult.biomarkers).length > 0) {
             // Check for duplicate dates
@@ -2056,6 +2092,7 @@ async function handleLabFileSelect(event) {
         }
     } catch (error) {
         console.error('Lab parsing error:', error);
+        console.error('Error stack:', error.stack);
         showNotification('Error processing lab file: ' + error.message, 'error');
     }
 
@@ -3155,5 +3192,3 @@ async function generateComprehensiveReport() {
     }
 }
 
-// Initialize DEXA/Lab on page load
-document.addEventListener('DOMContentLoaded', initDexaLabInputs);
