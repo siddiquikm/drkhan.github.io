@@ -2039,9 +2039,13 @@ function initDexaLabInputs() {
 }
 
 function updateDexaLabVisibility() {
+    console.log('updateDexaLabVisibility called, dexaData:', dexaData.length, 'labData:', labData.length);
     const bodyCompSection = document.getElementById('bodyCompLabsSection');
+    console.log('bodyCompSection element:', bodyCompSection);
     if (bodyCompSection && (dexaData.length > 0 || labData.length > 0)) {
         bodyCompSection.style.display = 'block';
+        bodyCompSection.classList.remove('hidden');
+        console.log('Section should now be visible, calling renderAllDexaLabComponents');
         renderAllDexaLabComponents();
     }
 }
@@ -2627,13 +2631,26 @@ function calculateMetabolicHealthScore() {
 
 // Render all DEXA/Lab components
 function renderAllDexaLabComponents() {
-    renderMetabolicScore();
-    renderBodyCompMetrics();
-    renderDexaTrends();
-    renderLabBiomarkers();
-    renderCardiovascularRisk();
-    renderLongevityFlags();
-    renderCGMLabCorrelation();
+    console.log('renderAllDexaLabComponents called');
+    try {
+        console.log('Rendering metabolic score...');
+        renderMetabolicScore();
+        console.log('Rendering body comp metrics...');
+        renderBodyCompMetrics();
+        console.log('Rendering DEXA trends...');
+        renderDexaTrends();
+        console.log('Rendering lab biomarkers...');
+        renderLabBiomarkers();
+        console.log('Rendering CV risk...');
+        renderCardiovascularRisk();
+        console.log('Rendering longevity flags...');
+        renderLongevityFlags();
+        console.log('Rendering CGM-Lab correlation...');
+        renderCGMLabCorrelation();
+        console.log('All rendering complete');
+    } catch (error) {
+        console.error('Error in renderAllDexaLabComponents:', error);
+    }
 }
 
 // Render metabolic health score
