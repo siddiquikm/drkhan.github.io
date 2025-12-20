@@ -2099,6 +2099,7 @@ async function handleDexaFileSelect(event) {
         console.log('Parsed DEXA result:', dexaResult);
 
         if (dexaResult) {
+            console.log('DEXA result valid, saving to storage...');
             // Check for duplicate dates
             const existingIndex = dexaData.findIndex(d => d.date === dexaResult.date);
             if (existingIndex >= 0) {
@@ -2108,8 +2109,11 @@ async function handleDexaFileSelect(event) {
             }
             dexaData.sort((a, b) => new Date(a.date) - new Date(b.date));
             localStorage.setItem('dexaData', JSON.stringify(dexaData));
+            console.log('DEXA data saved, array length:', dexaData.length);
 
+            console.log('About to call updateDexaLabVisibility...');
             updateDexaLabVisibility();
+            console.log('updateDexaLabVisibility completed, showing notification...');
             showNotification('DEXA scan processed successfully!', 'success');
         } else {
             showNotification('Could not parse DEXA data. Please check the PDF format.', 'error');
