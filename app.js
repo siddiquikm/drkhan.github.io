@@ -3405,234 +3405,315 @@ function renderCGMLabCorrelation() {
 
     const latestLab = labData.length > 0 ? labData[labData.length - 1] : null;
     const latestDexa = dexaData.length > 0 ? dexaData[dexaData.length - 1] : null;
-    const hasGlucoseData = typeof glucoseData !== 'undefined' && glucoseData.length > 0;
 
-    // Need at least lab data to show insights
-    if (!latestLab) {
-        container.innerHTML = '<p class="no-data-message">Upload lab data to see metabolic insights</p>';
+    // Get CGM metrics from current period
+    const cgmMetrics = typeof currentPeriodData !== 'undefined' && currentPeriodData.length > 0
+        ? calculateMetrics(currentPeriodData)
+        : null;
+
+    // Get weight data
+    const hasWeightData = typeof weightData !== 'undefined' && weightData.length > 0;
+    const weightChange = hasWeightData ? weightData[weightData.length - 1].weight - weightData[0].weight : null;
+
+    // Need CGM data at minimum
+    if (!cgmMetrics) {
+        container.innerHTML = '<p class="no-data-message">Upload CGM data to see metabolic insights</p>';
         return;
     }
 
     const insights = [];
-    const b = latestLab.biomarkers;
+    const b = latestLab?.biomarkers || {};
 
-    // === INSULIN SENSITIVITY & WEIGHT LOSS INSIGHTS ===
-    // Evidence: HOMA-IR and TG/HDL are validated markers of insulin resistance
-    // Reference: Metabolic syndrome criteria (NCEP ATP III, IDF)
+    // === CGM + LAB CORRELATIONS ===
 
-    if (b.glucose && b.insulin) {
-        const homaIR = (b.glucose * b.insulin) / 405;
+    // 1. CGM Average Glucose vs Lab HbA1c
+    if (b.hba1c) {
+        const estimatedA1c = (cgmMetrics.avgGlucose + 46.7) / 28.7;
+        const diff = estimatedA1c - b.hba1c;
         let interpretation = '';
         let implication = '';
 
-        if (homaIR < 1.0) {
-            interpretation = 'Excellent insulin sensitivity';
-            implication = 'Your cells respond efficiently to insulin. This is associated with easier weight management, better energy levels, and reduced risk of type 2 diabetes. Research shows insulin-sensitive individuals lose weight more effectively on various diet approaches.';
-        } else if (homaIR < 2.0) {
-            interpretation = 'Normal insulin sensitivity';
-            implication = 'Your insulin function is adequate. To optimize further, focus on strength training (increases muscle glucose uptake), adequate sleep, and limiting refined carbohydrates.';
+        if (Math.abs(diff) < 0.3) {
+            interpretation = 'CGM and lab HbA1c are well aligned';
+            implication = 'Your continuous glucose monitoring accurately reflects your long-term glycemic control. This consistency suggests stable glucose patterns across different times of day and activities.';
+        } else if (diff > 0.3) {
+            interpretation = 'CGM shows higher average than lab HbA1c';
+            implication = 'Your CGM captures glucose elevations (likely post-meal spikes) that aren\'t fully reflected in HbA1c. This may indicate good overnight/fasting control but elevated daytime glucose. Focus on post-meal glucose management through meal timing and composition.';
         } else {
-            interpretation = 'Insulin resistance detected';
-            implication = 'Your cells require more insulin to process glucose. This can make weight loss harder and increase diabetes risk. Evidence-based interventions: time-restricted eating, reducing refined carbs, Zone 2 cardio, and strength training.';
+            interpretation = 'Lab HbA1c higher than CGM suggests';
+            implication = 'Your glucose may be elevated during times you\'re not wearing CGM, or there may be individual variation in glycation rates. Consider extending CGM wear during different activities or times.';
         }
 
         insights.push({
-            category: 'Weight Loss & Metabolism',
-            title: 'Insulin Sensitivity (HOMA-IR)',
-            value: homaIR.toFixed(2),
-            status: homaIR < 1.0 ? 'optimal' : homaIR < 2.0 ? 'normal' : 'elevated',
+            category: 'CGM & Lab Integration',
+            title: 'Estimated A1c vs Lab HbA1c',
+            value: `eA1c: ${estimatedA1c.toFixed(1)}% | Lab: ${b.hba1c}%`,
+            status: Math.abs(diff) < 0.3 ? 'optimal' : Math.abs(diff) < 0.5 ? 'normal' : 'elevated',
             interpretation,
             implication,
-            evidence: 'HOMA-IR < 1.0 is associated with 40% lower risk of metabolic syndrome (Stern et al., Diabetes Care 2005)'
+            evidence: 'GMI (glucose management indicator) from CGM correlates r=0.95 with lab HbA1c (Bergenstal et al., Diabetes Care 2018)'
         });
     }
 
-    // TG/HDL Ratio - Marker of atherogenic dyslipidemia and insulin resistance
+    // 2. CGM Fasting vs Lab Fasting Glucose
+    if (cgmMetrics.fasting && b.glucose) {
+        const diff = cgmMetrics.fasting - b.glucose;
+        let interpretation = '';
+        let implication = '';
+
+        if (Math.abs(diff) < 8) {
+            interpretation = 'CGM and lab fasting glucose align well';
+            implication = 'Your early morning glucose (4-7am CGM average) matches your lab fasting value, confirming consistent overnight glucose regulation.';
+        } else if (diff > 8) {
+            interpretation = 'CGM fasting runs higher than lab';
+            implication = 'Your CGM captures dawn phenomenon (natural morning glucose rise) that single-point lab tests may miss. This is common and can be managed with evening meal timing adjustments.';
+        } else {
+            interpretation = 'Lab fasting higher than CGM average';
+            implication = 'Lab conditions (stress, timing) may have elevated your reading. CGM provides a more representative fasting average over multiple days.';
+        }
+
+        insights.push({
+            category: 'CGM & Lab Integration',
+            title: 'Fasting Glucose Comparison',
+            value: `CGM: ${cgmMetrics.fasting.toFixed(0)} | Lab: ${b.glucose} mg/dL`,
+            status: Math.abs(diff) < 8 ? 'optimal' : 'normal',
+            interpretation,
+            implication,
+            evidence: 'Dawn phenomenon affects 50%+ of individuals; CGM captures this better than single fasting tests (Monnier et al., Diabetes Care 2013)'
+        });
+    }
+
+    // 3. Glucose Variability (CV) and Insulin Sensitivity
     if (b.triglycerides && b.hdl) {
         const tgHdl = b.triglycerides / b.hdl;
         let interpretation = '';
         let implication = '';
 
-        if (tgHdl < 1.5) {
-            interpretation = 'Optimal metabolic flexibility';
-            implication = 'Your body efficiently switches between burning glucose and fat. This is the hallmark of good metabolic health and supports sustained weight loss. You likely experience stable energy throughout the day.';
-        } else if (tgHdl < 2.5) {
-            interpretation = 'Moderate metabolic function';
-            implication = 'Some room for improvement. Consider reducing refined carbohydrates, increasing omega-3 fatty acids, and incorporating more aerobic exercise to improve fat oxidation.';
+        // CV < 20% is low variability, 20-33% moderate, >33% high
+        const cvStatus = cgmMetrics.cv < 20 ? 'low' : cgmMetrics.cv < 33 ? 'moderate' : 'high';
+        const tgHdlStatus = tgHdl < 1.5 ? 'optimal' : tgHdl < 2.5 ? 'moderate' : 'elevated';
+
+        if (cvStatus === 'low' && tgHdlStatus === 'optimal') {
+            interpretation = 'Excellent metabolic flexibility confirmed';
+            implication = 'Your low glucose variability combined with optimal TG/HDL ratio indicates your cells efficiently switch between burning glucose and fat. This metabolic flexibility is associated with easier weight management, stable energy, and longevity. Your body handles fuel sources well.';
+        } else if (cvStatus !== 'low' && tgHdlStatus === 'optimal') {
+            interpretation = 'Good lipids but glucose variability suggests optimization opportunity';
+            implication = 'Despite good lipid markers, your glucose swings suggest room to improve carbohydrate tolerance. Consider meal sequencing (vegetables/protein before carbs), adding fiber, or reducing refined carbohydrates. Your lipids suggest capacity for improvement.';
+        } else if (cvStatus === 'low' && tgHdlStatus !== 'optimal') {
+            interpretation = 'Stable glucose but lipids suggest metabolic stress';
+            implication = 'Your steady glucose is positive, but lipid pattern suggests underlying insulin resistance not yet manifesting in glucose. This is an early warning sign - focus on reducing refined carbs and increasing aerobic exercise to prevent glucose dysregulation.';
         } else {
-            interpretation = 'Metabolic inflexibility indicated';
-            implication = 'Elevated ratio suggests difficulty burning fat for fuel. This can cause energy crashes and make weight loss challenging. Focus on low-glycemic nutrition and building aerobic fitness (Zone 2 training).';
+            interpretation = 'Both markers indicate metabolic inflexibility';
+            implication = 'Elevated glucose variability combined with TG/HDL pattern suggests insulin resistance affecting both glucose and fat metabolism. Evidence-based interventions: time-restricted eating (12-16hr overnight fast), Zone 2 cardio (150+ min/week), strength training, and prioritizing protein/fiber at meals.';
         }
 
         insights.push({
-            category: 'Weight Loss & Metabolism',
-            title: 'Metabolic Flexibility (TG/HDL)',
-            value: tgHdl.toFixed(2),
-            status: tgHdl < 1.5 ? 'optimal' : tgHdl < 2.5 ? 'normal' : 'elevated',
+            category: 'Metabolic Flexibility',
+            title: 'Glucose Variability + Lipid Pattern',
+            value: `CV: ${cgmMetrics.cv.toFixed(1)}% | TG/HDL: ${tgHdl.toFixed(2)}`,
+            status: (cvStatus === 'low' && tgHdlStatus === 'optimal') ? 'optimal' :
+                   (cvStatus === 'moderate' || tgHdlStatus === 'moderate') ? 'normal' : 'elevated',
             interpretation,
             implication,
-            evidence: 'TG/HDL ratio is a stronger predictor of cardiovascular events than LDL alone (da Luz et al., Clinics 2008)'
+            evidence: 'Glucose variability (CV) independently predicts cardiovascular events; TG/HDL correlates with insulin resistance and small dense LDL (Monnier et al., JAMA 2006; McLaughlin et al., Circulation 2005)'
         });
     }
 
-    // === LONGEVITY & HEALTHSPAN INSIGHTS ===
-
-    // ApoB - Primary driver of atherosclerosis
-    if (b.apoB) {
-        let interpretation = '';
-        let implication = '';
-
-        if (b.apoB < 70) {
-            interpretation = 'Optimal for longevity';
-            implication = 'Your atherogenic particle count is in the range associated with minimal plaque progression. Dr. Peter Attia and other longevity-focused physicians target ApoB < 60 mg/dL for maximum lifespan benefit.';
-        } else if (b.apoB < 90) {
-            interpretation = 'Acceptable range';
-            implication = 'Good for most people, but those focused on longevity may want to optimize further through diet (reducing saturated fat, increasing fiber) or discussing medication options with their physician.';
-        } else {
-            interpretation = 'Elevated cardiovascular risk';
-            implication = 'Higher ApoB accelerates arterial plaque formation. Each 10 mg/dL reduction in ApoB is associated with ~5% reduction in cardiovascular events. Discuss statin or PCSK9 inhibitor options with your doctor.';
-        }
-
-        insights.push({
-            category: 'Longevity & Lifespan',
-            title: 'Atherogenic Risk (ApoB)',
-            value: `${b.apoB} mg/dL`,
-            status: b.apoB < 70 ? 'optimal' : b.apoB < 90 ? 'normal' : 'elevated',
-            interpretation,
-            implication,
-            evidence: 'ApoB is causal in atherosclerosis; lifetime exposure determines cardiovascular risk (Ference et al., European Heart Journal 2017)'
-        });
-    }
-
-    // Inflammation (CRP) - Links to aging and chronic disease
+    // 4. Glucose Variability and Inflammation
     if (b.crp) {
         let interpretation = '';
         let implication = '';
 
-        if (b.crp < 0.5) {
-            interpretation = 'Minimal inflammation';
-            implication = 'Low systemic inflammation is strongly associated with healthy aging and longevity. This suggests your lifestyle and diet are supporting cellular health.';
-        } else if (b.crp < 1.0) {
-            interpretation = 'Low-normal inflammation';
-            implication = 'Good inflammatory status. To optimize: prioritize sleep quality, manage stress, consider anti-inflammatory foods (fatty fish, leafy greens, berries).';
-        } else if (b.crp < 3.0) {
-            interpretation = 'Moderate inflammation';
-            implication = 'Chronic low-grade inflammation accelerates aging and disease. Common causes: excess visceral fat, poor sleep, chronic stress, pro-inflammatory diet. Address root causes for healthspan.';
+        const cvStatus = cgmMetrics.cv < 20 ? 'low' : cgmMetrics.cv < 33 ? 'moderate' : 'high';
+        const crpStatus = b.crp < 0.5 ? 'optimal' : b.crp < 1.0 ? 'low' : b.crp < 3.0 ? 'moderate' : 'high';
+
+        if (cvStatus === 'low' && crpStatus === 'optimal') {
+            interpretation = 'Low oxidative stress profile';
+            implication = 'Your stable glucose patterns combined with low inflammation create an optimal environment for cellular health and longevity. Glucose swings trigger oxidative stress and inflammation - you\'re avoiding this cycle.';
+        } else if (cvStatus !== 'low' && crpStatus !== 'optimal') {
+            interpretation = 'Glucose variability may be driving inflammation';
+            implication = 'Research shows glucose spikes generate reactive oxygen species and inflammatory cytokines. Your CRP elevation may be partially explained by glycemic variability. Reducing glucose swings through fiber, protein-first eating, and post-meal walks could lower inflammation.';
+        } else if (cvStatus !== 'low' && crpStatus === 'optimal') {
+            interpretation = 'Glucose variability not yet affecting inflammation';
+            implication = 'Your low CRP despite glucose swings suggests other protective factors (diet, exercise, sleep) are buffering inflammatory effects. Continue those habits while working to reduce glucose variability for long-term protection.';
         } else {
-            interpretation = 'Elevated inflammation';
-            implication = 'High CRP is associated with increased all-cause mortality. Rule out acute illness, then focus on weight loss (especially visceral fat), sleep optimization, and anti-inflammatory nutrition.';
+            interpretation = 'Inflammation present with stable glucose';
+            implication = 'Your inflammation likely has other drivers (visceral fat, sleep, stress, diet quality) since glucose is well-controlled. Investigate other inflammatory sources.';
         }
 
         insights.push({
-            category: 'Longevity & Lifespan',
-            title: 'Systemic Inflammation (hs-CRP)',
-            value: `${b.crp} mg/L`,
-            status: b.crp < 0.5 ? 'optimal' : b.crp < 1.0 ? 'normal' : 'elevated',
+            category: 'Inflammation & Oxidative Stress',
+            title: 'Glucose Swings + Inflammation',
+            value: `CV: ${cgmMetrics.cv.toFixed(1)}% | CRP: ${b.crp} mg/L`,
+            status: (cvStatus === 'low' && crpStatus === 'optimal') ? 'optimal' :
+                   (crpStatus !== 'optimal' || cvStatus === 'high') ? 'elevated' : 'normal',
             interpretation,
             implication,
-            evidence: 'hs-CRP > 3 mg/L associated with 2x cardiovascular risk; inflammation is a hallmark of aging (Ridker et al., NEJM 2017)'
+            evidence: 'Glycemic variability independently activates oxidative stress and inflammatory pathways (Ceriello et al., Diabetes Care 2008; Monnier et al., JAMA 2006)'
         });
     }
 
-    // === BODY COMPOSITION & LAB CORRELATION ===
+    // === CGM + DEXA CORRELATIONS ===
     if (latestDexa) {
-        // Visceral fat and metabolic health correlation
+        // 5. Time in Range and Visceral Fat
         if (latestDexa.visceralFat !== null && latestDexa.visceralFat !== undefined) {
             let interpretation = '';
             let implication = '';
 
-            if (latestDexa.visceralFat < 52) {
-                interpretation = 'Healthy visceral fat level';
-                implication = 'Low visceral fat is strongly protective against metabolic disease. This likely contributes to your favorable lab markers. Visceral fat reduction is one of the most impactful interventions for longevity.';
-            } else if (latestDexa.visceralFat < 100) {
-                interpretation = 'Moderate visceral fat';
-                implication = 'Some visceral fat accumulation. This metabolically active fat releases inflammatory cytokines and can worsen insulin resistance. Zone 2 cardio is particularly effective for visceral fat reduction.';
-            } else {
-                interpretation = 'Elevated visceral fat';
-                implication = 'High visceral fat strongly correlates with metabolic dysfunction. It may be contributing to any elevated inflammation or insulin resistance markers. Prioritize this for healthspan improvement.';
-            }
+            const tirStatus = cgmMetrics.tirOptimal >= 70 ? 'excellent' : cgmMetrics.tirOptimal >= 50 ? 'good' : 'needs_work';
+            const vfStatus = latestDexa.visceralFat < 52 ? 'optimal' : latestDexa.visceralFat < 100 ? 'moderate' : 'elevated';
 
-            // Check for lab correlations
-            let correlationNote = '';
-            if (b.crp && b.crp > 1 && latestDexa.visceralFat > 52) {
-                correlationNote = 'Note: Your elevated CRP may be partially explained by visceral fat, which produces inflammatory cytokines.';
-            }
-            if (b.insulin && b.insulin > 10 && latestDexa.visceralFat > 52) {
-                correlationNote += correlationNote ? ' ' : '';
-                correlationNote += 'Your insulin levels may improve as visceral fat decreases.';
+            if (tirStatus === 'excellent' && vfStatus === 'optimal') {
+                interpretation = 'Optimal glucose control supports low visceral fat';
+                implication = 'Your excellent time in range (70-110 mg/dL) combined with low visceral fat creates a virtuous cycle: stable glucose reduces insulin spikes that promote visceral fat storage, while low visceral fat improves insulin sensitivity. Maintain this through continued lifestyle habits.';
+            } else if (tirStatus !== 'excellent' && vfStatus !== 'optimal') {
+                interpretation = 'Glucose dysregulation and visceral fat may be reinforcing each other';
+                implication = 'Visceral fat secretes inflammatory cytokines that worsen insulin resistance, causing glucose spikes. Glucose spikes trigger insulin surges that promote fat storage (especially visceral). Breaking this cycle requires targeting both: Zone 2 cardio preferentially burns visceral fat while improving glucose uptake.';
+            } else if (tirStatus === 'excellent' && vfStatus !== 'optimal') {
+                interpretation = 'Good glucose control despite visceral fat';
+                implication = 'Your body is maintaining glucose control despite visceral fat - this is protective. However, reducing visceral fat will further improve insulin sensitivity and lower disease risk. Focus on caloric deficit with adequate protein to preserve muscle.';
+            } else {
+                interpretation = 'Glucose patterns need attention despite healthy visceral fat';
+                implication = 'Your low visceral fat is excellent, but glucose patterns suggest dietary or lifestyle factors affecting glycemic control. Focus on meal composition and timing rather than caloric restriction.';
             }
 
             insights.push({
-                category: 'Body Composition & Labs',
-                title: 'Visceral Fat Impact',
-                value: `${latestDexa.visceralFat.toFixed(1)} in³`,
-                status: latestDexa.visceralFat < 52 ? 'optimal' : latestDexa.visceralFat < 100 ? 'moderate' : 'elevated',
+                category: 'Body Composition & Glucose',
+                title: 'Time in Range + Visceral Fat',
+                value: `TIR: ${cgmMetrics.tirOptimal.toFixed(0)}% | VAT: ${latestDexa.visceralFat.toFixed(0)} in³`,
+                status: (tirStatus === 'excellent' && vfStatus === 'optimal') ? 'optimal' :
+                       (tirStatus === 'needs_work' || vfStatus === 'elevated') ? 'elevated' : 'normal',
                 interpretation,
-                implication: implication + (correlationNote ? ' ' + correlationNote : ''),
-                evidence: 'Visceral adipose tissue is the primary driver of metabolic syndrome (Després, Nature 2006)'
+                implication,
+                evidence: 'Visceral adipose tissue is the strongest body composition predictor of glucose dysregulation; hyperinsulinemia promotes visceral fat accumulation (Després, Nature 2006; Smith et al., JCI 2019)'
             });
         }
 
-        // A/G Ratio and metabolic risk
-        if (latestDexa.agRatio !== null && latestDexa.agRatio !== undefined) {
+        // 6. Body Fat % and Glucose Metrics
+        if (latestDexa.bodyFatPercent !== null) {
             let interpretation = '';
             let implication = '';
 
-            if (latestDexa.agRatio < 1.0) {
-                interpretation = 'Favorable fat distribution';
-                implication = 'Lower abdominal fat relative to hip fat is associated with better metabolic health. This "pear shape" distribution is protective against cardiovascular disease.';
+            const bfStatus = latestDexa.bodyFatPercent < 20 ? 'lean' : latestDexa.bodyFatPercent < 25 ? 'healthy' : latestDexa.bodyFatPercent < 30 ? 'elevated' : 'high';
+            const avgGStatus = cgmMetrics.avgGlucose < 90 ? 'excellent' : cgmMetrics.avgGlucose < 100 ? 'good' : 'elevated';
+
+            if (bfStatus === 'lean' && avgGStatus === 'excellent') {
+                interpretation = 'Lean body composition supports optimal glucose';
+                implication = 'Your low body fat percentage contributes to excellent insulin sensitivity, reflected in your average glucose. This body composition is associated with longevity and low chronic disease risk. Focus on maintaining muscle mass as you age.';
+            } else if (avgGStatus === 'excellent' && (bfStatus === 'elevated' || bfStatus === 'high')) {
+                interpretation = 'Metabolically healthy despite elevated body fat';
+                implication = 'Your glucose control is excellent despite higher body fat - you may be "metabolically healthy obese." However, research shows this state often progresses to metabolic dysfunction over time. Use this window to reduce body fat while metabolic health is good.';
             } else {
-                interpretation = 'Android fat pattern';
-                implication = 'Higher abdominal fat distribution (apple shape) is associated with greater metabolic risk independent of total body fat. Focus on overall fat loss and stress management (cortisol promotes abdominal fat storage).';
+                interpretation = 'Body fat and glucose suggest insulin resistance';
+                implication = 'Elevated body fat combined with average glucose above optimal suggests developing insulin resistance. Each 5% reduction in body fat significantly improves insulin sensitivity. Prioritize resistance training to preserve/build muscle while losing fat.';
             }
 
             insights.push({
-                category: 'Body Composition & Labs',
-                title: 'Fat Distribution Pattern',
-                value: `A/G: ${latestDexa.agRatio.toFixed(2)}`,
-                status: latestDexa.agRatio < 1.0 ? 'optimal' : 'elevated',
+                category: 'Body Composition & Glucose',
+                title: 'Body Fat % + Average Glucose',
+                value: `BF: ${latestDexa.bodyFatPercent.toFixed(1)}% | Avg: ${cgmMetrics.avgGlucose.toFixed(0)} mg/dL`,
+                status: (avgGStatus === 'excellent' && (bfStatus === 'lean' || bfStatus === 'healthy')) ? 'optimal' :
+                       avgGStatus === 'excellent' ? 'normal' : 'elevated',
                 interpretation,
                 implication,
-                evidence: 'Android/gynoid ratio predicts metabolic syndrome independent of BMI (Aucouturier et al., Obesity 2009)'
+                evidence: 'Metabolically healthy obesity often transitions to metabolic syndrome; 5-10% weight loss improves insulin sensitivity 30-50% (Stefan et al., Lancet Diabetes 2017)'
             });
         }
     }
 
-    // === CGM-SPECIFIC INSIGHTS (if available) ===
-    if (hasGlucoseData) {
-        const avgGlucose = glucoseData.reduce((sum, d) => sum + d.glucose, 0) / glucoseData.length;
-        const estimatedA1c = (avgGlucose + 46.7) / 28.7;
+    // === WEIGHT TRENDS + GLUCOSE ===
+    if (hasWeightData && weightChange !== null) {
+        let interpretation = '';
+        let implication = '';
 
-        if (b.hba1c) {
-            const diff = estimatedA1c - b.hba1c;
-            let interpretation = '';
-            let implication = '';
+        const weightTrend = weightChange < -2 ? 'losing' : weightChange > 2 ? 'gaining' : 'stable';
+        const tirTrend = cgmMetrics.tirOptimal >= 70 ? 'excellent' : cgmMetrics.tirOptimal >= 50 ? 'good' : 'needs_work';
 
-            if (Math.abs(diff) < 0.3) {
-                interpretation = 'CGM and lab HbA1c align well';
-                implication = 'Your continuous glucose data accurately reflects your average glycemic control. This suggests consistent glucose patterns.';
-            } else if (diff > 0) {
-                interpretation = 'CGM suggests higher average than lab A1c';
-                implication = 'You may have better overnight glucose control than daytime. The CGM captures peaks that short-term tests miss. Focus on post-meal glucose management.';
-            } else {
-                interpretation = 'Lab A1c higher than CGM suggests';
-                implication = 'Your glucose may spike during times without CGM coverage, or there may be glycation variability. Consider wearing CGM during different activities.';
-            }
-
-            insights.push({
-                category: 'CGM & Lab Integration',
-                title: 'Estimated vs Lab HbA1c',
-                value: `eA1c: ${estimatedA1c.toFixed(1)}% vs Lab: ${b.hba1c}%`,
-                status: Math.abs(diff) < 0.3 ? 'aligned' : 'divergent',
-                interpretation,
-                implication,
-                evidence: 'GMI (estimated A1c) from CGM correlates r=0.95 with lab HbA1c (Bergenstal et al., Diabetes Care 2018)'
-            });
+        if (weightTrend === 'losing' && tirTrend === 'excellent') {
+            interpretation = 'Weight loss + excellent glucose: optimal progress';
+            implication = 'Your weight loss is accompanied by excellent glucose control - this indicates you\'re losing fat while preserving metabolic health. This pattern predicts sustained weight loss success and improved long-term outcomes.';
+        } else if (weightTrend === 'losing' && tirTrend !== 'excellent') {
+            interpretation = 'Weight loss with suboptimal glucose patterns';
+            implication = 'While losing weight, your glucose patterns suggest room for improvement. This may indicate losing muscle along with fat, or dietary choices that spike glucose despite caloric deficit. Ensure adequate protein (0.7-1g per lb bodyweight) and consider meal composition.';
+        } else if (weightTrend === 'stable' && tirTrend === 'excellent') {
+            interpretation = 'Stable weight with metabolic health';
+            implication = 'If weight loss is your goal, you may need to increase caloric deficit. However, your excellent glucose control means any deficit should preserve metabolic health. Consider increasing activity rather than drastically cutting calories.';
+        } else if (weightTrend === 'gaining') {
+            interpretation = 'Weight gain detected';
+            implication = weightChange > 5
+                ? 'Significant weight gain can worsen glucose control over time. Reassess caloric intake and activity levels.'
+                : 'Minor weight fluctuation is normal. Monitor trends over weeks rather than days.';
+        } else {
+            interpretation = 'Stable weight but glucose needs attention';
+            implication = 'Even at stable weight, improving glucose patterns through food choices and timing can improve body composition (less visceral fat) and metabolic health without scale changes.';
         }
+
+        insights.push({
+            category: 'Weight Progress & Glucose',
+            title: 'Weight Trend + Time in Range',
+            value: `Weight: ${weightChange > 0 ? '+' : ''}${weightChange.toFixed(1)} lbs | TIR: ${cgmMetrics.tirOptimal.toFixed(0)}%`,
+            status: (weightTrend === 'losing' && tirTrend === 'excellent') ? 'optimal' :
+                   (weightTrend === 'gaining') ? 'elevated' : 'normal',
+            interpretation,
+            implication,
+            evidence: 'Weight loss with preserved TIR indicates fat loss; declining TIR during weight loss may indicate muscle loss or metabolic adaptation (Hall et al., Cell Metabolism 2016)'
+        });
+    }
+
+    // === LONGEVITY SYNTHESIS ===
+    // Only add if we have multiple data sources
+    if (latestLab && (latestDexa || cgmMetrics)) {
+        let riskFactors = 0;
+        let protectiveFactors = 0;
+        let keyFindings = [];
+
+        // Assess each factor
+        if (cgmMetrics.cv < 20) { protectiveFactors++; keyFindings.push('low glucose variability'); }
+        else if (cgmMetrics.cv > 33) { riskFactors++; keyFindings.push('high glucose variability'); }
+
+        if (b.crp && b.crp < 1) { protectiveFactors++; keyFindings.push('low inflammation'); }
+        else if (b.crp && b.crp > 3) { riskFactors++; keyFindings.push('elevated inflammation'); }
+
+        if (b.apoB && b.apoB < 70) { protectiveFactors++; keyFindings.push('optimal ApoB'); }
+        else if (b.apoB && b.apoB > 100) { riskFactors++; keyFindings.push('elevated ApoB'); }
+
+        if (latestDexa?.visceralFat && latestDexa.visceralFat < 52) { protectiveFactors++; keyFindings.push('low visceral fat'); }
+        else if (latestDexa?.visceralFat && latestDexa.visceralFat > 100) { riskFactors++; keyFindings.push('elevated visceral fat'); }
+
+        if (b.glucose && b.insulin) {
+            const homaIR = (b.glucose * b.insulin) / 405;
+            if (homaIR < 1) { protectiveFactors++; keyFindings.push('excellent insulin sensitivity'); }
+            else if (homaIR > 2) { riskFactors++; keyFindings.push('insulin resistance'); }
+        }
+
+        let interpretation = '';
+        let implication = '';
+
+        if (protectiveFactors >= 3 && riskFactors === 0) {
+            interpretation = 'Strong longevity profile';
+            implication = `Your combined markers (${keyFindings.slice(0, 3).join(', ')}) are associated with healthy aging and extended healthspan. Continue current lifestyle habits. Consider optimizing sleep, stress management, and social connections for maximum longevity benefit.`;
+        } else if (riskFactors >= 2) {
+            interpretation = 'Multiple areas need attention for longevity';
+            implication = `Key areas to address: ${keyFindings.filter(f => f.includes('elevated') || f.includes('resistance') || f.includes('high')).join(', ')}. These factors compound over time. The good news: they\'re all modifiable through lifestyle interventions. Prioritize the factor most connected to your daily habits.`;
+        } else {
+            interpretation = 'Mixed longevity markers';
+            implication = `You have protective factors (${keyFindings.filter(f => !f.includes('elevated')).slice(0, 2).join(', ')}) and areas for improvement. Focus on maintaining what's working while addressing weaker areas. Small consistent improvements compound significantly over decades.`;
+        }
+
+        insights.push({
+            category: 'Longevity Summary',
+            title: 'Combined Risk Assessment',
+            value: `${protectiveFactors} protective | ${riskFactors} risk factors`,
+            status: protectiveFactors >= 3 && riskFactors === 0 ? 'optimal' :
+                   riskFactors >= 2 ? 'elevated' : 'normal',
+            interpretation,
+            implication,
+            evidence: 'Metabolic syndrome criteria (≥3 factors) increases CVD mortality 2-3x; each factor addressed reduces risk substantially (Grundy et al., Circulation 2005)'
+        });
     }
 
     if (insights.length === 0) {
-        container.innerHTML = '<p class="no-data-message">Insufficient biomarker data for correlation insights</p>';
+        container.innerHTML = '<p class="no-data-message">Upload lab or DEXA data to see correlations with your CGM patterns</p>';
         return;
     }
 
