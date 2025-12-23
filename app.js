@@ -2017,21 +2017,14 @@ const BIOMARKER_REFERENCE = {
 
 // Initialize DEXA and Lab file inputs
 function initDexaLabInputs() {
-    console.log('Initializing DEXA/Lab inputs...');
     const dexaInput = document.getElementById('dexaInput');
     const labInput = document.getElementById('labInput');
 
     if (dexaInput) {
-        console.log('DEXA input found, adding listener');
         dexaInput.addEventListener('change', handleDexaFileSelect);
-    } else {
-        console.log('DEXA input not found');
     }
     if (labInput) {
-        console.log('Lab input found, adding listener');
         labInput.addEventListener('change', handleLabFileSelect);
-    } else {
-        console.log('Lab input not found');
     }
 
     // Show sections if data exists
@@ -2039,13 +2032,10 @@ function initDexaLabInputs() {
 }
 
 function updateDexaLabVisibility() {
-    console.log('updateDexaLabVisibility called, dexaData:', dexaData.length, 'labData:', labData.length);
     const bodyCompSection = document.getElementById('bodyCompLabsSection');
-    console.log('bodyCompSection element:', bodyCompSection);
     if (bodyCompSection && (dexaData.length > 0 || labData.length > 0)) {
         bodyCompSection.style.display = 'block';
         bodyCompSection.classList.remove('hidden');
-        console.log('Section should now be visible, calling renderAllDexaLabComponents');
         renderAllDexaLabComponents();
     }
 }
@@ -2057,12 +2047,8 @@ async function extractTextFromPDF(file) {
         throw new Error('PDF.js library not loaded. Please refresh the page.');
     }
 
-    console.log('PDF.js version:', pdfjsLib.version);
     const arrayBuffer = await file.arrayBuffer();
-    console.log('ArrayBuffer size:', arrayBuffer.byteLength);
-
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    console.log('PDF loaded, pages:', pdf.numPages);
 
     let fullText = '';
 
@@ -2071,7 +2057,6 @@ async function extractTextFromPDF(file) {
         const textContent = await page.getTextContent();
         const pageText = textContent.items.map(item => item.str).join(' ');
         fullText += pageText + '\n';
-        console.log(`Page ${i} extracted, length: ${pageText.length}`);
     }
 
     return fullText;
@@ -2079,27 +2064,15 @@ async function extractTextFromPDF(file) {
 
 // Handle DEXA file upload
 async function handleDexaFileSelect(event) {
-    console.log('DEXA file select triggered', event);
     const file = event.target.files[0];
-    if (!file) {
-        console.log('No file selected');
-        return;
-    }
-    console.log('Processing file:', file.name, file.type, file.size);
+    if (!file) return;
 
     try {
         showNotification('Processing DEXA scan...', 'info');
-        console.log('Extracting text from PDF...');
         const text = await extractTextFromPDF(file);
-        console.log('Extracted text length:', text.length);
-        console.log('=== EXTRACTED TEXT (first 3000 chars) ===');
-        console.log(text.substring(0, 3000));
-        console.log('=== END EXTRACTED TEXT ===');
         const dexaResult = parseDexaText(text, file.name);
-        console.log('Parsed DEXA result:', dexaResult);
 
         if (dexaResult) {
-            console.log('DEXA result valid, saving to storage...');
             // Check for duplicate dates
             const existingIndex = dexaData.findIndex(d => d.date === dexaResult.date);
             if (existingIndex >= 0) {
@@ -2109,18 +2082,14 @@ async function handleDexaFileSelect(event) {
             }
             dexaData.sort((a, b) => new Date(a.date) - new Date(b.date));
             localStorage.setItem('dexaData', JSON.stringify(dexaData));
-            console.log('DEXA data saved, array length:', dexaData.length);
 
-            console.log('About to call updateDexaLabVisibility...');
             updateDexaLabVisibility();
-            console.log('updateDexaLabVisibility completed, showing notification...');
             showNotification('DEXA scan processed successfully!', 'success');
         } else {
             showNotification('Could not parse DEXA data. Please check the PDF format.', 'error');
         }
     } catch (error) {
         console.error('DEXA parsing error:', error);
-        console.error('Error stack:', error.stack);
         showNotification('Error processing DEXA file: ' + error.message, 'error');
     }
 
@@ -2129,25 +2098,13 @@ async function handleDexaFileSelect(event) {
 
 // Handle Lab file upload
 async function handleLabFileSelect(event) {
-    console.log('Lab file select triggered', event);
     const file = event.target.files[0];
-    if (!file) {
-        console.log('No file selected');
-        return;
-    }
-    console.log('Processing file:', file.name, file.type, file.size);
+    if (!file) return;
 
     try {
         showNotification('Processing lab report...', 'info');
-        console.log('Extracting text from PDF...');
         const text = await extractTextFromPDF(file);
-        console.log('Extracted text length:', text.length);
-        console.log('=== LAB EXTRACTED TEXT (first 4000 chars) ===');
-        console.log(text.substring(0, 4000));
-        console.log('=== END LAB EXTRACTED TEXT ===');
         const labResult = parseLabText(text, file.name);
-        console.log('Parsed lab result:', labResult);
-        console.log('Biomarkers found:', labResult?.biomarkers);
 
         if (labResult && Object.keys(labResult.biomarkers).length > 0) {
             // Check for duplicate dates
@@ -2167,7 +2124,6 @@ async function handleLabFileSelect(event) {
         }
     } catch (error) {
         console.error('Lab parsing error:', error);
-        console.error('Error stack:', error.stack);
         showNotification('Error processing lab file: ' + error.message, 'error');
     }
 
@@ -2176,8 +2132,6 @@ async function handleLabFileSelect(event) {
 
 // Parse DEXA text - supports multiple providers
 function parseDexaText(text, filename) {
-    console.log('Starting DEXA text parsing...');
-
     const result = {
         date: null,
         provider: 'Unknown',
@@ -2197,7 +2151,6 @@ function parseDexaText(text, filename) {
     // Detect provider
     if (text.includes('Live Lean Rx') || text.includes('LiveLeanRx') || text.includes('HEALTHIER LIFE')) {
         result.provider = 'Live Lean Rx';
-        console.log('Detected provider: Live Lean Rx');
     } else if (text.includes('DexaFit')) {
         result.provider = 'DexaFit';
     } else if (text.includes('BodySpec')) {
@@ -2208,15 +2161,12 @@ function parseDexaText(text, filename) {
 
     // === LIVE LEAN RX SPECIFIC PARSING ===
     if (result.provider === 'Live Lean Rx') {
-        console.log('Using Live Lean Rx parser...');
-
         // Extract date from "Measured: 12/17/2025" or first date in data row
         const measuredMatch = text.match(/Measured:\s*(\d{1,2}\/\d{1,2}\/\d{4})/);
         if (measuredMatch) {
             const parsed = new Date(measuredMatch[1]);
             if (!isNaN(parsed)) {
                 result.date = parsed.toISOString().split('T')[0];
-                console.log('Found date:', result.date);
             }
         }
 
@@ -2225,7 +2175,6 @@ function parseDexaText(text, filename) {
         // This matches: date, body fat %, total mass, fat mass, lean mass, bmc, fat free
         const dataRowMatch = text.match(/(\d{1,2}\/\d{1,2}\/\d{4})\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*lbs/);
         if (dataRowMatch) {
-            console.log('Found data row:', dataRowMatch[0]);
             result.bodyFatPercent = parseFloat(dataRowMatch[2]);
             result.totalMass = parseFloat(dataRowMatch[3]);
             result.fatMass = parseFloat(dataRowMatch[4]);
@@ -2245,20 +2194,17 @@ function parseDexaText(text, filename) {
         const androidMatch = text.match(/Android\s+([\d.]+)%/);
         if (androidMatch) {
             result.androidFat = parseFloat(androidMatch[1]);
-            console.log('Found android fat:', result.androidFat);
         }
 
         // Extract Gynoid fat: "Gynoid   23.5%   35.4"
         const gynoidMatch = text.match(/Gynoid\s+([\d.]+)%/);
         if (gynoidMatch) {
             result.gynoidFat = parseFloat(gynoidMatch[1]);
-            console.log('Found gynoid fat:', result.gynoidFat);
         }
 
         // Calculate A/G ratio if both are present
         if (result.androidFat && result.gynoidFat) {
             result.agRatio = parseFloat((result.androidFat / result.gynoidFat).toFixed(2));
-            console.log('Calculated A/G ratio:', result.agRatio);
         }
 
         // Extract VAT (Visceral Adipose Tissue) - look for volume in cubic inches
@@ -2267,10 +2213,7 @@ function parseDexaText(text, filename) {
         if (vatMatch) {
             // vatMatch[2] is fat mass in lbs, vatMatch[3] is volume in cubic inches
             result.visceralFat = parseFloat(vatMatch[3]); // Using volume
-            console.log('Found VAT volume:', result.visceralFat);
         }
-
-        console.log('Live Lean Rx parsing complete:', result);
 
         // Return if we got the essential data
         if (result.bodyFatPercent !== null) {
@@ -2279,7 +2222,6 @@ function parseDexaText(text, filename) {
     }
 
     // === GENERIC PARSING (fallback for other providers) ===
-    console.log('Using generic parser...');
 
     // Extract date - try multiple formats
     if (!result.date) {
@@ -2458,8 +2400,6 @@ function parseLabText(text, filename) {
         result.provider = 'Lab';
     }
 
-    console.log('Lab provider detected:', result.provider);
-
     // Extract date
     const datePatterns = [
         /(?:Date Collected|Collection Date|Collected)[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
@@ -2485,8 +2425,6 @@ function parseLabText(text, filename) {
     // Format: "TestName   A,   01   VALUE   PREV_VALUE   DATE   Units   Reference"
     // The "A," is optional, "01" is a marker we need to skip
     if (isLabcorp) {
-        console.log('Using Labcorp-specific parser...');
-
         // Labcorp format varies by test type:
         // NMR tests: "TestName   A,   01   VALUE   PREV_VALUE   MM/DD/YYYY   Units"
         // Other tests: "TestName   VALUE   Reference" or "TestName   A,   01   VALUE   Units"
@@ -2504,7 +2442,6 @@ function parseLabText(text, filename) {
             if (match && match[1]) {
                 const val = parseFloat(match[1]);
                 if (!isNaN(val) && val >= bounds.min && val <= bounds.max) {
-                    console.log(`  Strategy 1 (02/01 marker): ${val}`);
                     return val;
                 }
             }
@@ -2519,7 +2456,6 @@ function parseLabText(text, filename) {
             if (match && match[1]) {
                 const val = parseFloat(match[1]);
                 if (!isNaN(val) && val >= bounds.min && val <= bounds.max) {
-                    console.log(`  Strategy 2 (A, marker): ${val}`);
                     return val;
                 }
             }
@@ -2534,7 +2470,6 @@ function parseLabText(text, filename) {
             if (match && match[1]) {
                 const val = parseFloat(match[1]);
                 if (!isNaN(val) && val >= bounds.min && val <= bounds.max) {
-                    console.log(`  Strategy 3 (with date): ${val}`);
                     return val;
                 }
             }
@@ -2548,7 +2483,6 @@ function parseLabText(text, filename) {
             if (match && match[1]) {
                 const val = parseFloat(match[1]);
                 if (!isNaN(val) && val >= bounds.min && val <= bounds.max) {
-                    console.log(`  Strategy 4 (simple): ${val}`);
                     return val;
                 }
             }
@@ -2621,34 +2555,24 @@ function parseLabText(text, filename) {
             apoA1: { pattern: 'Apo(?:lipoprotein)?\\s*A-?1', valuePattern: '(\\d{2,3})', min: 80, max: 250 }
         };
 
-        console.log('=== Starting Labcorp biomarker extraction ===');
-
         for (const [key, testDef] of Object.entries(labcorpTests)) {
-            console.log(`Looking for: ${key}`);
             const value = extractLabcorpValue(text, testDef.pattern, testDef.valuePattern, testDef);
 
             if (value !== null) {
                 result.biomarkers[key] = value;
-                console.log(`  Found ${key}: ${value}`);
-            } else {
-                console.log(`  Not found`);
             }
         }
 
-        console.log('=== Final Labcorp biomarkers ===', result.biomarkers);
         return result;
     }
 
     // Generic parser for non-Labcorp labs
-    console.log('Using generic lab parser...');
-
     function extractValue(text, patterns) {
         for (const pattern of patterns) {
             const match = text.match(pattern);
             if (match && match[1]) {
                 const value = parseFloat(match[1]);
                 if (!isNaN(value) && value > 0) {
-                    console.log(`  Pattern matched: ${pattern} -> ${value}`);
                     return value;
                 }
             }
@@ -2730,22 +2654,13 @@ function parseLabText(text, filename) {
         }
     };
 
-    console.log('=== Starting generic biomarker extraction ===');
-
     for (const [key, def] of Object.entries(biomarkerDefs)) {
-        console.log(`Looking for: ${key}`);
         const value = extractValue(text, def.patterns);
         if (value !== null && value >= def.min && value <= def.max) {
             result.biomarkers[key] = value;
-            console.log(`  Found ${key}: ${value}`);
-        } else if (value !== null) {
-            console.log(`  Value ${value} outside bounds, skipping`);
-        } else {
-            console.log(`  Not found`);
         }
     }
 
-    console.log('=== Final biomarkers ===', result.biomarkers);
     return result;
 }
 
@@ -2836,23 +2751,14 @@ function calculateMetabolicHealthScore() {
 
 // Render all DEXA/Lab components
 function renderAllDexaLabComponents() {
-    console.log('renderAllDexaLabComponents called');
     try {
-        console.log('Rendering metabolic score...');
         renderMetabolicScore();
-        console.log('Rendering body comp metrics...');
         renderBodyCompMetrics();
-        console.log('Rendering DEXA trends...');
         renderDexaTrends();
-        console.log('Rendering lab biomarkers...');
         renderLabBiomarkers();
-        console.log('Rendering CV risk...');
         renderCardiovascularRisk();
-        console.log('Rendering longevity flags...');
         renderLongevityFlags();
-        console.log('Rendering CGM-Lab correlation...');
         renderCGMLabCorrelation();
-        console.log('All rendering complete');
     } catch (error) {
         console.error('Error in renderAllDexaLabComponents:', error);
     }
