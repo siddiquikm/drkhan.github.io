@@ -2492,45 +2492,63 @@ function parseLabText(text, filename) {
         // Other tests: "TestName   VALUE   Reference" or "TestName   A,   01   VALUE   Units"
 
         // Helper: extract value using multiple pattern strategies
+        // Labcorp format: NMR tests use "01" marker, standard tests use "02" marker
         function extractLabcorpValue(text, testPattern, valuePattern = '(\\d+\\.?\\d*)', bounds) {
-            // Strategy 1: Full pattern with date (most specific)
-            const fullPattern = new RegExp(
-                testPattern + '\\s+(?:A,\\s+)?0?1?\\s+' + valuePattern + '\\s+(?:\\d+\\.?\\d*\\s+)?\\d{2}\\/\\d{2}\\/\\d{4}',
+            // Strategy 1: Test name followed by "02" marker (standard Labcorp tests)
+            // Format: "Glucose 02 73 82 10/14/2025 mg/dL"
+            let pattern = new RegExp(
+                testPattern + '\\s+0[12]\\s+' + valuePattern + '\\s+[\\d.<>]',
                 'i'
             );
-            let match = text.match(fullPattern);
+            let match = text.match(pattern);
             if (match && match[1]) {
                 const val = parseFloat(match[1]);
                 if (!isNaN(val) && val >= bounds.min && val <= bounds.max) {
-                    console.log(`  Strategy 1 (with date): ${val}`);
+                    console.log(`  Strategy 1 (02/01 marker): ${val}`);
                     return val;
                 }
             }
 
-            // Strategy 2: Test name followed by "A," or "01" marker then value, then units
-            const markerPattern = new RegExp(
-                testPattern + '\\s+(?:A,\\s+)?0?1\\s+' + valuePattern + '\\s+(?:\\d|<|>|[a-zA-Z])',
+            // Strategy 2: Test name with "A," flag followed by "01" marker (NMR tests)
+            // Format: "HDL-C A, 01 53 57 10/14/2025"
+            pattern = new RegExp(
+                testPattern + '\\s+A,\\s+0[12]\\s+' + valuePattern + '\\s+[\\d.<>]',
                 'i'
             );
-            match = text.match(markerPattern);
+            match = text.match(pattern);
             if (match && match[1]) {
                 const val = parseFloat(match[1]);
                 if (!isNaN(val) && val >= bounds.min && val <= bounds.max) {
-                    console.log(`  Strategy 2 (with marker): ${val}`);
+                    console.log(`  Strategy 2 (A, marker): ${val}`);
                     return val;
                 }
             }
 
-            // Strategy 3: Test name followed by value and units (for simpler format tests)
-            const simplePattern = new RegExp(
+            // Strategy 3: Full pattern with date (most specific)
+            // Format: "TestName 02 VALUE PREV_VALUE MM/DD/YYYY Units"
+            pattern = new RegExp(
+                testPattern + '\\s+(?:A,\\s+)?0[12]\\s+' + valuePattern + '\\s+(?:\\d+\\.?\\d*\\s+)?\\d{2}\\/\\d{2}\\/\\d{4}',
+                'i'
+            );
+            match = text.match(pattern);
+            if (match && match[1]) {
+                const val = parseFloat(match[1]);
+                if (!isNaN(val) && val >= bounds.min && val <= bounds.max) {
+                    console.log(`  Strategy 3 (with date): ${val}`);
+                    return val;
+                }
+            }
+
+            // Strategy 4: Simple pattern - test name followed by value (fallback)
+            pattern = new RegExp(
                 testPattern + '\\s+' + valuePattern + '\\s+(?:\\d|[a-zA-Z/<>])',
                 'i'
             );
-            match = text.match(simplePattern);
+            match = text.match(pattern);
             if (match && match[1]) {
                 const val = parseFloat(match[1]);
                 if (!isNaN(val) && val >= bounds.min && val <= bounds.max) {
-                    console.log(`  Strategy 3 (simple): ${val}`);
+                    console.log(`  Strategy 4 (simple): ${val}`);
                     return val;
                 }
             }
