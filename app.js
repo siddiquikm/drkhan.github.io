@@ -2142,8 +2142,12 @@ async function handleLabFileSelect(event) {
         console.log('Extracting text from PDF...');
         const text = await extractTextFromPDF(file);
         console.log('Extracted text length:', text.length);
+        console.log('=== LAB EXTRACTED TEXT (first 4000 chars) ===');
+        console.log(text.substring(0, 4000));
+        console.log('=== END LAB EXTRACTED TEXT ===');
         const labResult = parseLabText(text, file.name);
         console.log('Parsed lab result:', labResult);
+        console.log('Biomarkers found:', labResult?.biomarkers);
 
         if (labResult && Object.keys(labResult.biomarkers).length > 0) {
             // Check for duplicate dates
