@@ -1704,6 +1704,302 @@ body {
 .body-comp-status.elevated { color: var(--warning-color); }
 .body-comp-status.high { color: var(--danger-color); }
 
+/* NEW: Improved Metabolic Health Score UI */
+.metabolic-score-display {
+    display: flex;
+    align-items: stretch;
+    gap: 32px;
+    flex-wrap: wrap;
+}
+
+.score-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    min-width: 140px;
+}
+
+.score-circle {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.score-circle svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.score-circle-bg {
+    fill: none;
+    stroke: var(--border-color);
+    stroke-width: 8;
+}
+
+.score-circle-fill {
+    fill: none;
+    stroke: url(#scoreGradient);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.8s ease;
+}
+
+.score-circle.grade-a .score-circle-fill { stroke: #10b981; }
+.score-circle.grade-b .score-circle-fill { stroke: #22c55e; }
+.score-circle.grade-c .score-circle-fill { stroke: #f59e0b; }
+.score-circle.grade-d .score-circle-fill { stroke: #ef4444; }
+
+.score-circle-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.score-circle-content .score-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.score-circle-content .score-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.score-grade-info {
+    text-align: center;
+}
+
+.score-grade {
+    display: inline-block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    border-radius: 50%;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.score-grade.grade-a { background: linear-gradient(135deg, #10b981, #34d399); }
+.score-grade.grade-b { background: linear-gradient(135deg, #22c55e, #84cc16); }
+.score-grade.grade-c { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+.score-grade.grade-d { background: linear-gradient(135deg, #ef4444, #f87171); }
+
+.score-grade-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.score-components {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 280px;
+}
+
+.component-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-tertiary);
+    padding: 12px 16px;
+    border-radius: var(--border-radius-sm);
+}
+
+.component-icon {
+    font-size: 1.25rem;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+}
+
+.component-info {
+    flex: 1;
+}
+
+.component-name {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.component-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.component-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.component-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.component-bar-fill.good { background: linear-gradient(90deg, #10b981, #34d399); }
+.component-bar-fill.moderate { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.component-bar-fill.poor { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+.component-score {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 28px;
+    text-align: right;
+}
+
+/* NEW: Improved Body Composition UI */
+.body-comp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.provider-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-tertiary);
+    padding: 8px 16px;
+    border-radius: 20px;
+}
+
+.provider-icon {
+    font-size: 1rem;
+}
+
+.provider-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.scan-date {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.date-icon {
+    font-size: 0.9rem;
+}
+
+.body-comp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+}
+
+.body-comp-card {
+    position: relative;
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.body-comp-card .card-accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent-color, var(--dexa-color));
+}
+
+.body-comp-card .card-content {
+    padding: 16px 16px 16px 20px;
+}
+
+.body-comp-card .metric-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.body-comp-card .metric-icon {
+    font-size: 1rem;
+}
+
+.body-comp-card .metric-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.body-comp-card .metric-body {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.body-comp-card .metric-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.body-comp-card .metric-unit {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.body-comp-card .metric-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.body-comp-card .metric-change.change-good {
+    background: rgba(16, 185, 129, 0.15);
+    color: #059669;
+}
+
+.body-comp-card .metric-change.change-bad {
+    background: rgba(239, 68, 68, 0.15);
+    color: #dc2626;
+}
+
+.body-comp-card .metric-optimal {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
 /* DEXA Trends Chart */
 .dexa-trends-section {
     border-left: 4px solid var(--dexa-color);

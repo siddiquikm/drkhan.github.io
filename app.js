@@ -2487,119 +2487,103 @@ function parseLabText(text, filename) {
     if (isLabcorp) {
         console.log('Using Labcorp-specific parser...');
 
-        // Labcorp biomarker patterns - skip "A,   01" or "01" marker to get actual value
-        const labcorpPatterns = {
-            // Glucose in metabolic panel: "Glucose   A,   01   92   ..."
-            glucose: /Glucose\s+(?:A,\s+)?0?1?\s+(\d{2,3})\s+/i,
-            // HbA1c: "Hemoglobin A1c   A,   01   5.4   ..."
-            hba1c: /Hemoglobin A1c\s+(?:A,\s+)?0?1?\s+(\d+\.?\d*)\s+/i,
-            // Insulin: "Insulin   A,   01   5.2   ..."
-            insulin: /Insulin\s+(?:A,\s+)?0?1?\s+(\d+\.?\d*)\s+/i,
-            // Triglycerides: "Triglycerides   A,   01   61   ..."
-            triglycerides: /Triglycerides\s+(?:A,\s+)?0?1?\s+(\d{2,4})\s+/i,
-            // HDL: "HDL-C   A,   01   53   ..."
-            hdl: /HDL-?C?\s+(?:A,\s+)?0?1?\s+(\d{2,3})\s+/i,
-            // LDL: "LDL-C (NIH Calc)   01   42   ..."
-            ldl: /LDL-?C?\s*(?:\([^)]*\))?\s+(?:A,\s+)?0?1?\s+(\d{2,3})\s+/i,
-            // Total Cholesterol: "Cholesterol, Total   A,   01   109   ..."
-            totalCholesterol: /Cholesterol,?\s*Total\s+(?:A,\s+)?0?1?\s+(\d{2,3})\s+/i,
-            // CRP: "C-Reactive Protein, Cardiac   A,   01   0.5   ..."
-            crp: /C-?Reactive Protein[,\s]+(?:Cardiac\s+)?(?:A,\s+)?0?1?\s+<?(\d+\.?\d*)\s+/i,
-            // Homocysteine: "Homocyst(e)ine   A,   01   8.2   ..."
-            homocysteine: /Homocyst\(?e?\)?ine\s+(?:A,\s+)?0?1?\s+(\d+\.?\d*)\s+/i,
-            // Vitamin D: "Vitamin D, 25-Hydroxy   A,   01   45   ..."
-            vitaminD: /Vitamin D,?\s*25-?Hydroxy\s+(?:A,\s+)?0?1?\s+(\d{1,3}\.?\d*)\s+/i,
-            // B12: "Vitamin B12   A,   01   650   ..."
-            b12: /Vitamin B-?12\s+(?:A,\s+)?0?1?\s+[<>]?(\d{3,4})\s+/i,
-            // Ferritin: "Ferritin   A,   01   125   ..."
-            ferritin: /Ferritin\s+(?:A,\s+)?0?1?\s+(\d{1,4})\s+/i,
-            // TSH: "TSH   A,   01   1.5   ..."
-            tsh: /TSH\s+(?:A,\s+)?0?1?\s+(\d+\.?\d*)\s+/i,
-            // ALT: "ALT (SGPT)   A,   01   25   ..."
-            alt: /ALT\s*(?:\(SGPT\))?\s+(?:A,\s+)?0?1?\s+(\d{1,3})\s+/i,
-            // AST: "AST (SGOT)   A,   01   22   ..."
-            ast: /AST\s*(?:\(SGOT\))?\s+(?:A,\s+)?0?1?\s+(\d{1,3})\s+/i,
-            // GGT: "GGT   A,   01   35   ..."
-            ggt: /GGT\s+(?:A,\s+)?0?1?\s+(\d{1,3})\s+/i,
-            // Uric Acid: "Uric Acid   A,   01   5.2   ..."
-            uricAcid: /Uric Acid\s+(?:A,\s+)?0?1?\s+(\d+\.?\d*)\s+/i,
-            // ApoB: "Apolipoprotein B   A,   01   85   ..."
-            apoB: /Apo(?:lipoprotein)?\s*B\s+(?:A,\s+)?0?1?\s+(\d{2,3})\s+/i,
-            // Lp(a): "Lipoprotein (a)   A,   01   15   ..."
-            lpA: /Lp\s*\(?a\)?\s+(?:A,\s+)?0?1?\s+[<>]?(\d+\.?\d*)\s+/i,
-            // Free T4: "Thyroxine (T4) Free   A,   01   1.2   ..."
-            freeT4: /(?:Thyroxine|T4)[,\s]+(?:\(T4\)\s+)?Free[,\s]+(?:Direct\s+)?(?:A,\s+)?0?1?\s+(\d+\.?\d*)\s+/i,
-            // Free T3: "Triiodothyronine (T3), Free   A,   01   3.2   ..."
-            freeT3: /(?:Triiodothyronine|T3)[,\s]+(?:\(T3\)[,\s]+)?Free\s+(?:A,\s+)?0?1?\s+(\d+\.?\d*)\s+/i,
-            // Cortisol: "Cortisol   A,   01   12.5   ..."
-            cortisol: /Cortisol\s+(?:A,\s+)?0?1?\s+(\d+\.?\d*)\s+/i,
-            // Testosterone: "Testosterone   A,   01   450   ..."
-            testosterone: /Testosterone\s+(?:A,\s+)?0?1?\s+[<>]?(\d{2,4}\.?\d*)\s+/i,
-            // Iron: "Iron   A,   01   85   ..."
-            iron: /Iron\s+(?:A,\s+)?0?1?\s+(\d{2,3})\s+/i,
-            // TIBC: "Iron Bind.Cap.(TIBC)   A,   01   320   ..."
-            tibc: /(?:Iron Bind|TIBC)[^0-9]*(?:A,\s+)?0?1?\s+(\d{2,4})\s+/i,
-            // Magnesium: "Magnesium   A,   01   2.1   ..."
-            magnesium: /Magnesium\s+(?:A,\s+)?0?1?\s+(\d+\.?\d*)\s+/i,
-            // Phosphorus: "Phosphorus   A,   01   3.5   ..."
-            phosphorus: /Phosphorus\s+(?:A,\s+)?0?1?\s+(\d+\.?\d*)\s+/i,
-            // ESR: "Sed Rate   A,   01   8   ..."
-            esr: /(?:Sed(?:imentation)? Rate|ESR)\s+(?:A,\s+)?0?1?\s+(\d{1,3})\s+/i,
-            // Folate: "Folate   A,   01   15.2   ..."
-            folate: /Folate\s+(?:A,\s+)?0?1?\s+[<>]?(\d+\.?\d*)\s+/i,
-            // ApoA1: "Apolipoprotein A1   A,   01   145   ..."
-            apoA1: /Apo(?:lipoprotein)?\s*A-?1?\s+(?:A,\s+)?0?1?\s+(\d{2,3})\s+/i
-        };
+        // Labcorp format: "TestName   A,   01   VALUE   PREV_VALUE   MM/DD/YYYY   Units   Reference"
+        // Key insight: Real results are followed by a date pattern (MM/DD/YYYY)
+        // This distinguishes them from "Ordered Items" list entries
 
-        const labcorpBounds = {
-            glucose: { min: 40, max: 400 },
-            hba1c: { min: 3, max: 15 },
-            insulin: { min: 0.1, max: 100 },
-            triglycerides: { min: 20, max: 1000 },
-            hdl: { min: 15, max: 150 },
-            ldl: { min: 20, max: 400 },
-            totalCholesterol: { min: 80, max: 500 },
-            crp: { min: 0.01, max: 50 },
-            homocysteine: { min: 2, max: 50 },
-            vitaminD: { min: 4, max: 200 },
-            b12: { min: 100, max: 2000 },
-            ferritin: { min: 5, max: 1500 },
-            tsh: { min: 0.01, max: 20 },
-            alt: { min: 5, max: 500 },
-            ast: { min: 5, max: 500 },
-            ggt: { min: 5, max: 500 },
-            uricAcid: { min: 1, max: 15 },
-            apoB: { min: 30, max: 250 },
-            lpA: { min: 0, max: 500 },
-            freeT4: { min: 0.5, max: 3 },
-            freeT3: { min: 1, max: 6 },
-            cortisol: { min: 1, max: 30 },
-            testosterone: { min: 10, max: 1500 },
-            iron: { min: 20, max: 300 },
-            tibc: { min: 200, max: 500 },
-            magnesium: { min: 1, max: 4 },
-            phosphorus: { min: 1, max: 8 },
-            esr: { min: 0, max: 100 },
-            folate: { min: 2, max: 50 },
-            apoA1: { min: 80, max: 250 }
+        // Helper: extract value from Labcorp result line (value followed by date)
+        function extractLabcorpValue(text, testPattern, valuePattern = '(\\d+\\.?\\d*)') {
+            // Pattern: TestName ... A, 01 VALUE [PREV] DATE
+            const fullPattern = new RegExp(
+                testPattern + '\\s+(?:A,\\s+)?0?1?\\s+' + valuePattern + '\\s+(?:\\d+\\.?\\d*\\s+)?\\d{2}\\/\\d{2}\\/\\d{4}',
+                'i'
+            );
+            const match = text.match(fullPattern);
+            if (match && match[1]) {
+                console.log(`  Full pattern matched: ${fullPattern}`);
+                return parseFloat(match[1]);
+            }
+            return null;
+        }
+
+        const labcorpTests = {
+            // Glucose: "Glucose   A,   01   92   88   12/15/2025   mg/dL"
+            glucose: { pattern: 'Glucose', valuePattern: '(\\d{2,3})', min: 40, max: 400 },
+            // HbA1c: "Hemoglobin A1c   A,   01   5.4   5.2   12/15/2025"
+            hba1c: { pattern: 'Hemoglobin A1c', valuePattern: '(\\d+\\.?\\d*)', min: 3, max: 15 },
+            // Insulin: "Insulin   A,   01   5.2   4.8   12/15/2025"
+            insulin: { pattern: 'Insulin(?!\\s+Res)', valuePattern: '(\\d+\\.?\\d*)', min: 0.1, max: 100 },
+            // Triglycerides
+            triglycerides: { pattern: 'Triglycerides', valuePattern: '(\\d{2,4})', min: 20, max: 1000 },
+            // HDL
+            hdl: { pattern: 'HDL-?C?(?!\\s*P)', valuePattern: '(\\d{2,3})', min: 15, max: 150 },
+            // LDL
+            ldl: { pattern: 'LDL-?C?\\s*(?:\\([^)]*\\))?', valuePattern: '(\\d{2,3})', min: 20, max: 400 },
+            // Total Cholesterol
+            totalCholesterol: { pattern: 'Cholesterol,?\\s*Total', valuePattern: '(\\d{2,3})', min: 80, max: 500 },
+            // CRP
+            crp: { pattern: 'C-?Reactive Protein[,\\s]+(?:Cardiac\\s+)?', valuePattern: '<?([\\d.]+)', min: 0.01, max: 50 },
+            // Homocysteine
+            homocysteine: { pattern: 'Homocyst\\(?e?\\)?ine', valuePattern: '(\\d+\\.?\\d*)', min: 2, max: 50 },
+            // Vitamin D
+            vitaminD: { pattern: 'Vitamin D,?\\s*25-?Hydroxy', valuePattern: '(\\d{1,3}\\.?\\d*)', min: 4, max: 200 },
+            // B12
+            b12: { pattern: 'Vitamin B-?12', valuePattern: '[<>]?(\\d{3,4})', min: 100, max: 2000 },
+            // Ferritin
+            ferritin: { pattern: 'Ferritin', valuePattern: '(\\d{1,4})', min: 5, max: 1500 },
+            // TSH
+            tsh: { pattern: 'TSH(?!\\s+[A-Z])', valuePattern: '(\\d+\\.?\\d*)', min: 0.01, max: 20 },
+            // ALT
+            alt: { pattern: 'ALT\\s*(?:\\(SGPT\\))?', valuePattern: '(\\d{1,3})', min: 5, max: 500 },
+            // AST
+            ast: { pattern: 'AST\\s*(?:\\(SGOT\\))?', valuePattern: '(\\d{1,3})', min: 5, max: 500 },
+            // GGT
+            ggt: { pattern: 'GGT', valuePattern: '(\\d{1,3})', min: 5, max: 500 },
+            // Uric Acid
+            uricAcid: { pattern: 'Uric Acid', valuePattern: '(\\d+\\.?\\d*)', min: 1, max: 15 },
+            // ApoB
+            apoB: { pattern: 'Apo(?:lipoprotein)?\\s*B(?!\\s*\\/)', valuePattern: '(\\d{2,3})', min: 30, max: 250 },
+            // Lp(a)
+            lpA: { pattern: 'Lp\\s*\\(?a\\)?', valuePattern: '[<>]?(\\d+\\.?\\d*)', min: 0, max: 500 },
+            // Free T4
+            freeT4: { pattern: '(?:Thyroxine|T4)[,\\s]+(?:\\(T4\\)\\s+)?Free[,\\s]+(?:Direct\\s+)?', valuePattern: '(\\d+\\.?\\d*)', min: 0.5, max: 3 },
+            // Free T3
+            freeT3: { pattern: '(?:Triiodothyronine|T3)[,\\s]+(?:\\(T3\\)[,\\s]+)?Free', valuePattern: '(\\d+\\.?\\d*)', min: 1, max: 6 },
+            // Cortisol
+            cortisol: { pattern: 'Cortisol', valuePattern: '(\\d+\\.?\\d*)', min: 1, max: 30 },
+            // Testosterone
+            testosterone: { pattern: 'Testosterone(?!\\s+Free)', valuePattern: '[<>]?(\\d{2,4}\\.?\\d*)', min: 10, max: 1500 },
+            // Testosterone Free
+            testosteroneFree: { pattern: 'Testosterone,?\\s+Free', valuePattern: '(\\d+\\.?\\d*)', min: 1, max: 50 },
+            // Iron
+            iron: { pattern: 'Iron(?!\\s+Bind)', valuePattern: '(\\d{2,3})', min: 20, max: 300 },
+            // TIBC
+            tibc: { pattern: '(?:Iron Bind[^0-9]*|TIBC)', valuePattern: '(\\d{2,4})', min: 200, max: 500 },
+            // Magnesium
+            magnesium: { pattern: 'Magnesium', valuePattern: '(\\d+\\.?\\d*)', min: 1, max: 4 },
+            // Phosphorus
+            phosphorus: { pattern: 'Phosphorus', valuePattern: '(\\d+\\.?\\d*)', min: 1, max: 8 },
+            // ESR
+            esr: { pattern: '(?:Sed(?:imentation)?\\s*Rate|ESR)', valuePattern: '(\\d{1,3})', min: 0, max: 100 },
+            // Folate
+            folate: { pattern: 'Folate(?!,?\\s*RBC)', valuePattern: '[<>]?(\\d+\\.?\\d*)', min: 2, max: 50 },
+            // ApoA1
+            apoA1: { pattern: 'Apo(?:lipoprotein)?\\s*A-?1', valuePattern: '(\\d{2,3})', min: 80, max: 250 }
         };
 
         console.log('=== Starting Labcorp biomarker extraction ===');
 
-        for (const [key, pattern] of Object.entries(labcorpPatterns)) {
+        for (const [key, testDef] of Object.entries(labcorpTests)) {
             console.log(`Looking for: ${key}`);
-            const match = text.match(pattern);
-            if (match && match[1]) {
-                const value = parseFloat(match[1]);
-                const bounds = labcorpBounds[key] || { min: 0, max: 10000 };
-                console.log(`  Pattern matched: ${pattern}`);
-                console.log(`  Raw value: ${match[1]} -> parsed: ${value}`);
+            const value = extractLabcorpValue(text, testDef.pattern, testDef.valuePattern);
 
-                if (!isNaN(value) && value >= bounds.min && value <= bounds.max) {
+            if (value !== null) {
+                console.log(`  Raw value: ${value}`);
+                if (!isNaN(value) && value >= testDef.min && value <= testDef.max) {
                     result.biomarkers[key] = value;
                     console.log(`  Found ${key}: ${value}`);
                 } else {
-                    console.log(`  Value ${value} outside bounds [${bounds.min}, ${bounds.max}], skipping`);
+                    console.log(`  Value ${value} outside bounds [${testDef.min}, ${testDef.max}], skipping`);
                 }
             } else {
                 console.log(`  Not found`);
@@ -2844,48 +2828,64 @@ function renderMetabolicScore() {
     const { overall, components } = scoreData;
     let gradeClass = 'grade-c';
     let grade = 'C';
+    let gradeLabel = 'Average';
 
-    if (overall >= 85) { gradeClass = 'grade-a'; grade = 'A'; }
-    else if (overall >= 70) { gradeClass = 'grade-b'; grade = 'B'; }
-    else if (overall >= 55) { gradeClass = 'grade-c'; grade = 'C'; }
-    else { gradeClass = 'grade-d'; grade = 'D'; }
+    if (overall >= 85) { gradeClass = 'grade-a'; grade = 'A'; gradeLabel = 'Excellent'; }
+    else if (overall >= 70) { gradeClass = 'grade-b'; grade = 'B'; gradeLabel = 'Good'; }
+    else if (overall >= 55) { gradeClass = 'grade-c'; grade = 'C'; gradeLabel = 'Average'; }
+    else { gradeClass = 'grade-d'; grade = 'D'; gradeLabel = 'Needs Work'; }
+
+    // Build component cards
+    const componentCards = [];
+    if (components.insulinSensitivity !== null) {
+        componentCards.push({ name: 'Insulin Sensitivity', score: components.insulinSensitivity, icon: '🔬' });
+    }
+    if (components.bodyComposition !== null) {
+        componentCards.push({ name: 'Body Composition', score: components.bodyComposition, icon: '💪' });
+    }
+    if (components.inflammation !== null) {
+        componentCards.push({ name: 'Inflammation', score: components.inflammation, icon: '🔥' });
+    }
+    if (components.cardiovascular !== null) {
+        componentCards.push({ name: 'Cardiovascular', score: Math.round(components.cardiovascular), icon: '❤️' });
+    }
 
     container.innerHTML = `
-        <div class="score-display">
-            <div class="score-badge ${gradeClass}">
-                <span class="score-number">${overall}</span>
-                <span class="score-grade">${grade}</span>
+        <div class="metabolic-score-display">
+            <div class="score-main">
+                <div class="score-circle ${gradeClass}">
+                    <svg viewBox="0 0 100 100">
+                        <circle class="score-circle-bg" cx="50" cy="50" r="45" />
+                        <circle class="score-circle-fill" cx="50" cy="50" r="45"
+                            stroke-dasharray="${overall * 2.83} 283"
+                            stroke-dashoffset="0" />
+                    </svg>
+                    <div class="score-circle-content">
+                        <span class="score-number">${overall}</span>
+                        <span class="score-label">/100</span>
+                    </div>
+                </div>
+                <div class="score-grade-info">
+                    <span class="score-grade ${gradeClass}">${grade}</span>
+                    <span class="score-grade-label">${gradeLabel}</span>
+                </div>
             </div>
-            <div class="score-breakdown">
-                <h4>Component Scores</h4>
-                ${components.insulinSensitivity !== null ? `
-                    <div class="score-component">
-                        <span>Insulin Sensitivity</span>
-                        <div class="score-bar"><div class="score-fill" style="width: ${components.insulinSensitivity}%"></div></div>
-                        <span>${components.insulinSensitivity}</span>
+            <div class="score-components">
+                ${componentCards.map(c => `
+                    <div class="component-card">
+                        <div class="component-icon">${c.icon}</div>
+                        <div class="component-info">
+                            <span class="component-name">${c.name}</span>
+                            <div class="component-bar-container">
+                                <div class="component-bar">
+                                    <div class="component-bar-fill ${c.score >= 70 ? 'good' : c.score >= 50 ? 'moderate' : 'poor'}"
+                                         style="width: ${c.score}%"></div>
+                                </div>
+                                <span class="component-score">${c.score}</span>
+                            </div>
+                        </div>
                     </div>
-                ` : ''}
-                ${components.bodyComposition !== null ? `
-                    <div class="score-component">
-                        <span>Body Composition</span>
-                        <div class="score-bar"><div class="score-fill" style="width: ${components.bodyComposition}%"></div></div>
-                        <span>${components.bodyComposition}</span>
-                    </div>
-                ` : ''}
-                ${components.inflammation !== null ? `
-                    <div class="score-component">
-                        <span>Inflammation</span>
-                        <div class="score-bar"><div class="score-fill" style="width: ${components.inflammation}%"></div></div>
-                        <span>${components.inflammation}</span>
-                    </div>
-                ` : ''}
-                ${components.cardiovascular !== null ? `
-                    <div class="score-component">
-                        <span>Cardiovascular</span>
-                        <div class="score-bar"><div class="score-fill" style="width: ${components.cardiovascular}%"></div></div>
-                        <span>${Math.round(components.cardiovascular)}</span>
-                    </div>
-                ` : ''}
+                `).join('')}
             </div>
         </div>
     `;
@@ -2902,74 +2902,115 @@ function renderBodyCompMetrics() {
     const latest = dexaData[dexaData.length - 1];
     const previous = dexaData.length > 1 ? dexaData[dexaData.length - 2] : null;
 
+    // Define optimal ranges for each metric (for progress visualization)
     const metrics = [
         {
             label: 'Body Fat',
             value: latest.bodyFatPercent,
             unit: '%',
             previous: previous?.bodyFatPercent,
-            lowerBetter: true
+            lowerBetter: true,
+            icon: '📊',
+            optimalRange: '10-20%',
+            color: '#8b5cf6'
         },
         {
             label: 'Lean Mass',
             value: latest.leanMass,
             unit: 'lbs',
             previous: previous?.leanMass,
-            lowerBetter: false
+            lowerBetter: false,
+            icon: '💪',
+            optimalRange: 'Higher is better',
+            color: '#10b981'
         },
         {
             label: 'Fat Mass',
             value: latest.fatMass,
             unit: 'lbs',
             previous: previous?.fatMass,
-            lowerBetter: true
+            lowerBetter: true,
+            icon: '⚖️',
+            optimalRange: 'Lower is better',
+            color: '#f59e0b'
         },
         {
             label: 'Visceral Fat',
             value: latest.visceralFat,
-            unit: 'g',
+            unit: 'in³',
             previous: previous?.visceralFat,
-            lowerBetter: true
+            lowerBetter: true,
+            icon: '🎯',
+            optimalRange: '<52 in³',
+            color: '#ef4444'
         },
         {
             label: 'Android Fat',
             value: latest.androidFat,
             unit: '%',
             previous: previous?.androidFat,
-            lowerBetter: true
+            lowerBetter: true,
+            icon: '📍',
+            optimalRange: '<25%',
+            color: '#6366f1'
         },
         {
             label: 'A/G Ratio',
             value: latest.agRatio,
             unit: '',
             previous: previous?.agRatio,
-            lowerBetter: true
+            lowerBetter: true,
+            icon: '📐',
+            optimalRange: '<1.0',
+            color: '#ec4899'
         }
-    ].filter(m => m.value !== null);
+    ].filter(m => m.value !== null && m.value !== undefined);
 
     container.innerHTML = `
+        <div class="body-comp-header">
+            <div class="provider-badge">
+                <span class="provider-icon">🏥</span>
+                <span class="provider-name">${latest.provider}</span>
+            </div>
+            <div class="scan-date">
+                <span class="date-icon">📅</span>
+                <span>${new Date(latest.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+            </div>
+        </div>
         <div class="body-comp-grid">
             ${metrics.map(m => {
                 let changeHtml = '';
+                let changeClass = '';
                 if (m.previous !== null && m.previous !== undefined) {
                     const change = m.value - m.previous;
-                    const changePercent = ((change / m.previous) * 100).toFixed(1);
                     const isGood = m.lowerBetter ? change < 0 : change > 0;
-                    const arrow = change > 0 ? '↑' : change < 0 ? '↓' : '→';
-                    changeHtml = `<span class="metric-change ${isGood ? 'good' : 'bad'}">${arrow} ${Math.abs(change).toFixed(1)} (${Math.abs(changePercent)}%)</span>`;
+                    const arrow = change > 0 ? '▲' : change < 0 ? '▼' : '—';
+                    changeClass = isGood ? 'change-good' : 'change-bad';
+                    changeHtml = `
+                        <div class="metric-change ${changeClass}">
+                            <span class="change-arrow">${arrow}</span>
+                            <span class="change-value">${Math.abs(change).toFixed(1)}</span>
+                        </div>
+                    `;
                 }
                 return `
-                    <div class="body-comp-card">
-                        <div class="metric-label">${m.label}</div>
-                        <div class="metric-value">${m.value.toFixed(1)}${m.unit}</div>
-                        ${changeHtml}
+                    <div class="body-comp-card" style="--accent-color: ${m.color}">
+                        <div class="card-accent"></div>
+                        <div class="card-content">
+                            <div class="metric-header">
+                                <span class="metric-icon">${m.icon}</span>
+                                <span class="metric-label">${m.label}</span>
+                            </div>
+                            <div class="metric-body">
+                                <span class="metric-value">${m.value.toFixed(1)}</span>
+                                <span class="metric-unit">${m.unit}</span>
+                            </div>
+                            ${changeHtml}
+                            <div class="metric-optimal">Optimal: ${m.optimalRange}</div>
+                        </div>
                     </div>
                 `;
             }).join('')}
-        </div>
-        <div class="dexa-meta">
-            <span>Provider: ${latest.provider}</span>
-            <span>Date: ${new Date(latest.date).toLocaleDateString()}</span>
         </div>
     `;
 }
