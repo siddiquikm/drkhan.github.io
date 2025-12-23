@@ -2861,26 +2861,32 @@ function renderAllDexaLabComponents() {
 // Render metabolic health score
 function renderMetabolicScore() {
     const container = document.getElementById('metabolicScoreContainer');
+    const scoreBadge = document.getElementById('metabolicScoreBadge');
+    const scoreValueEl = document.getElementById('metabolicScoreValue');
+
     if (!container) return;
 
     const scoreData = calculateMetabolicHealthScore();
 
     if (!scoreData) {
         container.innerHTML = '<p class="no-data-message">Upload DEXA or lab data to see your metabolic health score</p>';
+        if (scoreValueEl) scoreValueEl.textContent = '--';
         return;
     }
 
     const { overall, components } = scoreData;
-    let gradeClass = 'grade-c';
-    let grade = 'C';
-    let gradeLabel = 'Average';
 
-    if (overall >= 85) { gradeClass = 'grade-a'; grade = 'A'; gradeLabel = 'Excellent'; }
-    else if (overall >= 70) { gradeClass = 'grade-b'; grade = 'B'; gradeLabel = 'Good'; }
-    else if (overall >= 55) { gradeClass = 'grade-c'; grade = 'C'; gradeLabel = 'Average'; }
-    else { gradeClass = 'grade-d'; grade = 'D'; gradeLabel = 'Needs Work'; }
+    // Update the badge in the header
+    if (scoreValueEl) scoreValueEl.textContent = overall;
+    if (scoreBadge) {
+        scoreBadge.classList.remove('excellent', 'good', 'fair', 'poor');
+        if (overall >= 85) scoreBadge.classList.add('excellent');
+        else if (overall >= 70) scoreBadge.classList.add('good');
+        else if (overall >= 55) scoreBadge.classList.add('fair');
+        else scoreBadge.classList.add('poor');
+    }
 
-    // Build component cards
+    // Build horizontal component cards
     const componentCards = [];
     if (components.insulinSensitivity !== null) {
         componentCards.push({ name: 'Insulin Sensitivity', score: components.insulinSensitivity, icon: '🔬' });
@@ -2895,167 +2901,102 @@ function renderMetabolicScore() {
         componentCards.push({ name: 'Cardiovascular', score: Math.round(components.cardiovascular), icon: '❤️' });
     }
 
+    // Horizontal layout for score components
     container.innerHTML = `
-        <div class="metabolic-score-display">
-            <div class="score-main">
-                <div class="score-circle ${gradeClass}">
-                    <svg viewBox="0 0 100 100">
-                        <circle class="score-circle-bg" cx="50" cy="50" r="45" />
-                        <circle class="score-circle-fill" cx="50" cy="50" r="45"
-                            stroke-dasharray="${overall * 2.83} 283"
-                            stroke-dashoffset="0" />
-                    </svg>
-                    <div class="score-circle-content">
-                        <span class="score-number">${overall}</span>
-                        <span class="score-label">/100</span>
-                    </div>
-                </div>
-                <div class="score-grade-info">
-                    <span class="score-grade ${gradeClass}">${grade}</span>
-                    <span class="score-grade-label">${gradeLabel}</span>
-                </div>
-            </div>
-            <div class="score-components">
-                ${componentCards.map(c => `
-                    <div class="component-card">
-                        <div class="component-icon">${c.icon}</div>
-                        <div class="component-info">
-                            <span class="component-name">${c.name}</span>
-                            <div class="component-bar-container">
-                                <div class="component-bar">
-                                    <div class="component-bar-fill ${c.score >= 70 ? 'good' : c.score >= 50 ? 'moderate' : 'poor'}"
-                                         style="width: ${c.score}%"></div>
-                                </div>
-                                <span class="component-score">${c.score}</span>
-                            </div>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
-}
-
-// Render body composition metrics
-function renderBodyCompMetrics() {
-    const container = document.getElementById('bodyCompMetricsContainer');
-    if (!container || dexaData.length === 0) {
-        if (container) container.innerHTML = '<p class="no-data-message">No DEXA data available</p>';
-        return;
-    }
-
-    const latest = dexaData[dexaData.length - 1];
-    const previous = dexaData.length > 1 ? dexaData[dexaData.length - 2] : null;
-
-    // Define optimal ranges for each metric (for progress visualization)
-    const metrics = [
-        {
-            label: 'Body Fat',
-            value: latest.bodyFatPercent,
-            unit: '%',
-            previous: previous?.bodyFatPercent,
-            lowerBetter: true,
-            icon: '📊',
-            optimalRange: '10-20%',
-            color: '#8b5cf6'
-        },
-        {
-            label: 'Lean Mass',
-            value: latest.leanMass,
-            unit: 'lbs',
-            previous: previous?.leanMass,
-            lowerBetter: false,
-            icon: '💪',
-            optimalRange: 'Higher is better',
-            color: '#10b981'
-        },
-        {
-            label: 'Fat Mass',
-            value: latest.fatMass,
-            unit: 'lbs',
-            previous: previous?.fatMass,
-            lowerBetter: true,
-            icon: '⚖️',
-            optimalRange: 'Lower is better',
-            color: '#f59e0b'
-        },
-        {
-            label: 'Visceral Fat',
-            value: latest.visceralFat,
-            unit: 'in³',
-            previous: previous?.visceralFat,
-            lowerBetter: true,
-            icon: '🎯',
-            optimalRange: '<52 in³',
-            color: '#ef4444'
-        },
-        {
-            label: 'Android Fat',
-            value: latest.androidFat,
-            unit: '%',
-            previous: previous?.androidFat,
-            lowerBetter: true,
-            icon: '📍',
-            optimalRange: '<25%',
-            color: '#6366f1'
-        },
-        {
-            label: 'A/G Ratio',
-            value: latest.agRatio,
-            unit: '',
-            previous: previous?.agRatio,
-            lowerBetter: true,
-            icon: '📐',
-            optimalRange: '<1.0',
-            color: '#ec4899'
-        }
-    ].filter(m => m.value !== null && m.value !== undefined);
-
-    container.innerHTML = `
-        <div class="body-comp-header">
-            <div class="provider-badge">
-                <span class="provider-icon">🏥</span>
-                <span class="provider-name">${latest.provider}</span>
-            </div>
-            <div class="scan-date">
-                <span class="date-icon">📅</span>
-                <span>${new Date(latest.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-            </div>
-        </div>
-        <div class="body-comp-grid">
-            ${metrics.map(m => {
-                let changeHtml = '';
-                let changeClass = '';
-                if (m.previous !== null && m.previous !== undefined) {
-                    const change = m.value - m.previous;
-                    const isGood = m.lowerBetter ? change < 0 : change > 0;
-                    const arrow = change > 0 ? '▲' : change < 0 ? '▼' : '—';
-                    changeClass = isGood ? 'change-good' : 'change-bad';
-                    changeHtml = `
-                        <div class="metric-change ${changeClass}">
-                            <span class="change-arrow">${arrow}</span>
-                            <span class="change-value">${Math.abs(change).toFixed(1)}</span>
-                        </div>
-                    `;
-                }
+        <div class="score-components-horizontal">
+            ${componentCards.map(c => {
+                const colorClass = c.score >= 70 ? 'good' : c.score >= 50 ? 'moderate' : 'poor';
                 return `
-                    <div class="body-comp-card" style="--accent-color: ${m.color}">
-                        <div class="card-accent"></div>
-                        <div class="card-content">
-                            <div class="metric-header">
-                                <span class="metric-icon">${m.icon}</span>
-                                <span class="metric-label">${m.label}</span>
+                    <div class="component-item ${colorClass}">
+                        <div class="component-icon">${c.icon}</div>
+                        <div class="component-details">
+                            <span class="component-name">${c.name}</span>
+                            <div class="component-score-bar">
+                                <div class="bar-track">
+                                    <div class="bar-fill" style="width: ${c.score}%"></div>
+                                </div>
+                                <span class="score-value">${c.score}</span>
                             </div>
-                            <div class="metric-body">
-                                <span class="metric-value">${m.value.toFixed(1)}</span>
-                                <span class="metric-unit">${m.unit}</span>
-                            </div>
-                            ${changeHtml}
-                            <div class="metric-optimal">Optimal: ${m.optimalRange}</div>
                         </div>
                     </div>
                 `;
             }).join('')}
+        </div>
+    `;
+}
+
+// Render body composition metrics - DEXA Analysis section (similar to Lab Biomarkers)
+function renderBodyCompMetrics() {
+    const container = document.getElementById('bodyCompMetricsContainer');
+    if (!container || dexaData.length === 0) {
+        if (container) container.innerHTML = '';
+        return;
+    }
+
+    const latest = dexaData[dexaData.length - 1];
+
+    // Define DEXA metrics with optimal ranges
+    const dexaMetrics = {
+        bodyFatPercent: { name: 'Body Fat', unit: '%', optimal: [10, 20], lowerBetter: true },
+        leanMass: { name: 'Lean Mass', unit: 'lbs', optimal: [140, 200], higherBetter: true },
+        fatMass: { name: 'Fat Mass', unit: 'lbs', optimal: [20, 40], lowerBetter: true },
+        visceralFat: { name: 'Visceral Fat', unit: 'in³', optimal: [0, 52], lowerBetter: true },
+        androidFat: { name: 'Android Fat', unit: '%', optimal: [0, 25], lowerBetter: true },
+        agRatio: { name: 'A/G Ratio', unit: '', optimal: [0, 1.0], lowerBetter: true }
+    };
+
+    // Build metrics HTML similar to biomarker-item style
+    let metricsHtml = '';
+    for (const [key, ref] of Object.entries(dexaMetrics)) {
+        const value = latest[key];
+        if (value === null || value === undefined) continue;
+
+        let status = 'normal';
+        if (ref.higherBetter) {
+            if (value >= ref.optimal[0]) status = 'optimal';
+            else status = 'high-risk';
+        } else if (ref.lowerBetter) {
+            if (value <= ref.optimal[1]) status = 'optimal';
+            else status = 'high-risk';
+        } else {
+            if (value >= ref.optimal[0] && value <= ref.optimal[1]) status = 'optimal';
+            else status = 'high-risk';
+        }
+
+        const optimalText = ref.higherBetter ? `>${ref.optimal[0]}` :
+                           ref.lowerBetter ? `<${ref.optimal[1]}` :
+                           `${ref.optimal[0]}-${ref.optimal[1]}`;
+
+        metricsHtml += `
+            <div class="biomarker-item ${status}">
+                <div class="biomarker-name">${ref.name}</div>
+                <div class="biomarker-value">${value.toFixed(1)} ${ref.unit}</div>
+                <div class="biomarker-range">Optimal: ${optimalText}</div>
+                <div class="biomarker-status">${status === 'optimal' ? 'Optimal' : 'Review'}</div>
+            </div>
+        `;
+    }
+
+    // Create section with header similar to Lab Biomarkers
+    container.innerHTML = `
+        <div class="section-header">
+            <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                DEXA Analysis
+            </h3>
+            <div class="dexa-provider-info">
+                <span class="provider-name">${latest.provider}</span>
+                <span class="scan-date">${new Date(latest.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+            </div>
+        </div>
+        <div class="biomarker-categories">
+            <div class="biomarker-category">
+                <h4>Body Composition</h4>
+                <div class="biomarker-grid">${metricsHtml}</div>
+            </div>
         </div>
     `;
 }

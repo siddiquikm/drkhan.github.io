@@ -1875,6 +1875,137 @@ body {
     text-align: right;
 }
 
+/* NEW: Horizontal Score Components Layout */
+.score-components-horizontal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.score-components-horizontal .component-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-tertiary);
+    padding: 10px 14px;
+    border-radius: var(--border-radius-sm);
+    flex: 1;
+    min-width: 180px;
+    max-width: 280px;
+}
+
+.score-components-horizontal .component-icon {
+    font-size: 1.1rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.score-components-horizontal .component-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.score-components-horizontal .component-name {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.score-components-horizontal .component-score-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.score-components-horizontal .bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--border-color);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.score-components-horizontal .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+.score-components-horizontal .component-item.good .bar-fill {
+    background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.score-components-horizontal .component-item.moderate .bar-fill {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.score-components-horizontal .component-item.poor .bar-fill {
+    background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+.score-components-horizontal .score-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 24px;
+    text-align: right;
+}
+
+/* DEXA Analysis Section */
+.dexa-analysis-section {
+    border-left: 4px solid var(--dexa-color);
+}
+
+.dexa-analysis-section .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.dexa-analysis-section h3 svg {
+    color: var(--dexa-color);
+}
+
+.dexa-provider-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.85rem;
+}
+
+.dexa-provider-info .provider-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+    padding: 4px 10px;
+    border-radius: 12px;
+}
+
+.dexa-provider-info .scan-date {
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .score-components-horizontal {
+        gap: 10px;
+    }
+
+    .score-components-horizontal .component-item {
+        min-width: 150px;
+        padding: 8px 10px;
+    }
+}
+
 /* NEW: Improved Body Composition UI - Grid Layout */
 .body-comp-header {
     display: flex;
