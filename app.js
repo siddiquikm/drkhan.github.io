@@ -3681,21 +3681,21 @@ async function generateComprehensiveReport() {
                 <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
                     <tr style="background: #f7fafc;">
                         <td style="padding: 8px; border: 1px solid #e2e8f0;"><strong>Average Glucose</strong></td>
-                        <td style="padding: 8px; border: 1px solid #e2e8f0;">${cgmMetrics.avgGlucose.toFixed(0)} mg/dL</td>
+                        <td style="padding: 8px; border: 1px solid #e2e8f0;">${cgmMetrics.avgGlucose?.toFixed(0) || 'N/A'} mg/dL</td>
                         <td style="padding: 8px; border: 1px solid #e2e8f0;"><strong>Estimated A1c</strong></td>
                         <td style="padding: 8px; border: 1px solid #e2e8f0;">${eA1c}%</td>
                     </tr>
                     <tr>
                         <td style="padding: 8px; border: 1px solid #e2e8f0;"><strong>Glucose Variability (CV)</strong></td>
-                        <td style="padding: 8px; border: 1px solid #e2e8f0;">${cgmMetrics.cv.toFixed(1)}%</td>
+                        <td style="padding: 8px; border: 1px solid #e2e8f0;">${cgmMetrics.cv?.toFixed(1) || 'N/A'}%</td>
                         <td style="padding: 8px; border: 1px solid #e2e8f0;"><strong>Time in Range (70-110)</strong></td>
-                        <td style="padding: 8px; border: 1px solid #e2e8f0;">${cgmMetrics.tirOptimal.toFixed(0)}%</td>
+                        <td style="padding: 8px; border: 1px solid #e2e8f0;">${cgmMetrics.tirOptimal?.toFixed(0) || 'N/A'}%</td>
                     </tr>
                     <tr style="background: #f7fafc;">
                         <td style="padding: 8px; border: 1px solid #e2e8f0;"><strong>Fasting Glucose</strong></td>
                         <td style="padding: 8px; border: 1px solid #e2e8f0;">${cgmMetrics.fasting ? cgmMetrics.fasting.toFixed(0) + ' mg/dL' : 'N/A'}</td>
                         <td style="padding: 8px; border: 1px solid #e2e8f0;"><strong>Time Below Range (&lt;70)</strong></td>
-                        <td style="padding: 8px; border: 1px solid #e2e8f0;">${cgmMetrics.tbrLow.toFixed(1)}%</td>
+                        <td style="padding: 8px; border: 1px solid #e2e8f0;">${cgmMetrics.tirLow?.toFixed(1) || '0.0'}%</td>
                     </tr>
                 </table>
                 ${hasWeightData ? `<p style="margin-top: 15px;"><strong>Weight Change:</strong> ${weightChange > 0 ? '+' : ''}${weightChange} lbs over tracking period</p>` : ''}
