@@ -2563,91 +2563,147 @@ body {
     color: var(--text-primary);
 }
 
-/* CGM-Lab Correlation Section */
+/* CGM-Lab Correlation Section - Metabolic Insights */
 .cgm-lab-correlation-section {
     border-left: 4px solid var(--primary-color);
 }
 
-.correlation-insights {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+.cgm-lab-correlation-section h3 svg {
+    color: var(--primary-color);
 }
 
-.correlation-card {
-    background: var(--bg-tertiary);
-    border-radius: var(--border-radius);
-    padding: 20px;
-}
-
-.correlation-header {
+.insights-container {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
+    flex-direction: column;
+    gap: 24px;
 }
 
-.correlation-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--primary-color);
-    color: white;
+.insight-category {
+    margin-bottom: 8px;
 }
 
-.correlation-icon svg {
-    width: 18px;
-    height: 18px;
-}
-
-.correlation-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.correlation-cgm-value {
+.category-title {
     font-size: 0.85rem;
-    color: var(--text-muted);
-    margin-bottom: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    margin: 0 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
 }
 
-.correlation-lab-value {
+.insights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.insight-card {
+    padding: 16px;
+    border-radius: var(--border-radius-sm);
+    border-left: 4px solid;
+    background: var(--bg-tertiary);
+}
+
+.insight-card.optimal {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-left-color: var(--success-color);
+}
+
+.insight-card.normal {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-left-color: var(--primary-color);
+}
+
+.insight-card.moderate {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-left-color: var(--warning-color);
+}
+
+.insight-card.elevated {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border-left-color: var(--danger-color);
+}
+
+.insight-card.aligned {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-left-color: var(--success-color);
+}
+
+.insight-card.divergent {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-left-color: var(--warning-color);
+}
+
+.insight-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
-.correlation-lab-name {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-}
-
-.correlation-lab-data {
+.insight-title {
+    font-size: 0.95rem;
     font-weight: 600;
     color: var(--text-primary);
 }
 
-.correlation-insight {
-    font-size: 0.8rem;
+.insight-value {
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    background: white;
+    border-radius: 12px;
+}
+
+.insight-card.optimal .insight-value { color: var(--success-color); }
+.insight-card.normal .insight-value { color: var(--primary-color); }
+.insight-card.moderate .insight-value { color: var(--warning-color); }
+.insight-card.elevated .insight-value { color: var(--danger-color); }
+.insight-card.aligned .insight-value { color: var(--success-color); }
+.insight-card.divergent .insight-value { color: var(--warning-color); }
+
+.insight-interpretation {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.insight-implication {
+    font-size: 0.85rem;
     color: var(--text-secondary);
-    background: var(--bg-secondary);
-    padding: 12px;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.insight-evidence {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.6);
+    padding: 8px 10px;
     border-radius: var(--border-radius-sm);
-    margin-top: 12px;
-    line-height: 1.5;
+    font-style: italic;
+    line-height: 1.4;
 }
 
-.correlation-insight.positive {
-    border-left: 3px solid var(--success-color);
+.insight-evidence svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+    opacity: 0.7;
 }
 
-.correlation-insight.warning {
-    border-left: 3px solid var(--warning-color);
+@media (max-width: 600px) {
+    .insight-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
 
 /* Generate Report Section */

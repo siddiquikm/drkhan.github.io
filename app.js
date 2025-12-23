@@ -3404,75 +3404,268 @@ function renderCGMLabCorrelation() {
     if (!container) return;
 
     const latestLab = labData.length > 0 ? labData[labData.length - 1] : null;
-
-    // Get CGM data if available
+    const latestDexa = dexaData.length > 0 ? dexaData[dexaData.length - 1] : null;
     const hasGlucoseData = typeof glucoseData !== 'undefined' && glucoseData.length > 0;
 
-    if (!latestLab || !hasGlucoseData) {
-        container.innerHTML = '<p class="no-data-message">Need both CGM and lab data for correlation insights</p>';
+    // Need at least lab data to show insights
+    if (!latestLab) {
+        container.innerHTML = '<p class="no-data-message">Upload lab data to see metabolic insights</p>';
         return;
     }
 
-    const correlations = [];
+    const insights = [];
     const b = latestLab.biomarkers;
 
-    // Calculate CGM metrics
-    const avgGlucose = glucoseData.reduce((sum, d) => sum + d.glucose, 0) / glucoseData.length;
+    // === INSULIN SENSITIVITY & WEIGHT LOSS INSIGHTS ===
+    // Evidence: HOMA-IR and TG/HDL are validated markers of insulin resistance
+    // Reference: Metabolic syndrome criteria (NCEP ATP III, IDF)
 
-    // Estimated A1c from CGM average
-    const estimatedA1c = (avgGlucose + 46.7) / 28.7;
-
-    if (b.hba1c) {
-        const diff = Math.abs(estimatedA1c - b.hba1c);
+    if (b.glucose && b.insulin) {
+        const homaIR = (b.glucose * b.insulin) / 405;
         let interpretation = '';
+        let implication = '';
 
-        if (diff < 0.3) {
-            interpretation = 'Your CGM data aligns well with your lab HbA1c - good data accuracy.';
-        } else if (estimatedA1c > b.hba1c) {
-            interpretation = 'Your CGM average suggests higher glucose than lab A1c - you may have better overnight control.';
+        if (homaIR < 1.0) {
+            interpretation = 'Excellent insulin sensitivity';
+            implication = 'Your cells respond efficiently to insulin. This is associated with easier weight management, better energy levels, and reduced risk of type 2 diabetes. Research shows insulin-sensitive individuals lose weight more effectively on various diet approaches.';
+        } else if (homaIR < 2.0) {
+            interpretation = 'Normal insulin sensitivity';
+            implication = 'Your insulin function is adequate. To optimize further, focus on strength training (increases muscle glucose uptake), adequate sleep, and limiting refined carbohydrates.';
         } else {
-            interpretation = 'Your lab A1c is higher than CGM suggests - consider wearing CGM during different times/activities.';
+            interpretation = 'Insulin resistance detected';
+            implication = 'Your cells require more insulin to process glucose. This can make weight loss harder and increase diabetes risk. Evidence-based interventions: time-restricted eating, reducing refined carbs, Zone 2 cardio, and strength training.';
         }
 
-        correlations.push({
-            title: 'CGM vs Lab HbA1c',
-            cgmValue: `eA1c: ${estimatedA1c.toFixed(1)}%`,
-            labValue: `Lab A1c: ${b.hba1c}%`,
-            interpretation
+        insights.push({
+            category: 'Weight Loss & Metabolism',
+            title: 'Insulin Sensitivity (HOMA-IR)',
+            value: homaIR.toFixed(2),
+            status: homaIR < 1.0 ? 'optimal' : homaIR < 2.0 ? 'normal' : 'elevated',
+            interpretation,
+            implication,
+            evidence: 'HOMA-IR < 1.0 is associated with 40% lower risk of metabolic syndrome (Stern et al., Diabetes Care 2005)'
         });
     }
 
-    // TG/HDL and glucose variability correlation
+    // TG/HDL Ratio - Marker of atherogenic dyslipidemia and insulin resistance
     if (b.triglycerides && b.hdl) {
         const tgHdl = b.triglycerides / b.hdl;
         let interpretation = '';
+        let implication = '';
 
         if (tgHdl < 1.5) {
-            interpretation = 'Excellent TG/HDL ratio suggests good metabolic flexibility - your cells efficiently use both glucose and fat for fuel.';
+            interpretation = 'Optimal metabolic flexibility';
+            implication = 'Your body efficiently switches between burning glucose and fat. This is the hallmark of good metabolic health and supports sustained weight loss. You likely experience stable energy throughout the day.';
         } else if (tgHdl < 2.5) {
-            interpretation = 'Moderate TG/HDL ratio - focus on reducing high-glycemic carbs and improving insulin sensitivity.';
+            interpretation = 'Moderate metabolic function';
+            implication = 'Some room for improvement. Consider reducing refined carbohydrates, increasing omega-3 fatty acids, and incorporating more aerobic exercise to improve fat oxidation.';
         } else {
-            interpretation = 'Elevated TG/HDL indicates insulin resistance - your glucose spikes may take longer to normalize.';
+            interpretation = 'Metabolic inflexibility indicated';
+            implication = 'Elevated ratio suggests difficulty burning fat for fuel. This can cause energy crashes and make weight loss challenging. Focus on low-glycemic nutrition and building aerobic fitness (Zone 2 training).';
         }
 
-        correlations.push({
-            title: 'Insulin Sensitivity Insight',
-            cgmValue: `Avg Glucose: ${avgGlucose.toFixed(0)} mg/dL`,
-            labValue: `TG/HDL: ${tgHdl.toFixed(2)}`,
-            interpretation
+        insights.push({
+            category: 'Weight Loss & Metabolism',
+            title: 'Metabolic Flexibility (TG/HDL)',
+            value: tgHdl.toFixed(2),
+            status: tgHdl < 1.5 ? 'optimal' : tgHdl < 2.5 ? 'normal' : 'elevated',
+            interpretation,
+            implication,
+            evidence: 'TG/HDL ratio is a stronger predictor of cardiovascular events than LDL alone (da Luz et al., Clinics 2008)'
         });
     }
 
+    // === LONGEVITY & HEALTHSPAN INSIGHTS ===
+
+    // ApoB - Primary driver of atherosclerosis
+    if (b.apoB) {
+        let interpretation = '';
+        let implication = '';
+
+        if (b.apoB < 70) {
+            interpretation = 'Optimal for longevity';
+            implication = 'Your atherogenic particle count is in the range associated with minimal plaque progression. Dr. Peter Attia and other longevity-focused physicians target ApoB < 60 mg/dL for maximum lifespan benefit.';
+        } else if (b.apoB < 90) {
+            interpretation = 'Acceptable range';
+            implication = 'Good for most people, but those focused on longevity may want to optimize further through diet (reducing saturated fat, increasing fiber) or discussing medication options with their physician.';
+        } else {
+            interpretation = 'Elevated cardiovascular risk';
+            implication = 'Higher ApoB accelerates arterial plaque formation. Each 10 mg/dL reduction in ApoB is associated with ~5% reduction in cardiovascular events. Discuss statin or PCSK9 inhibitor options with your doctor.';
+        }
+
+        insights.push({
+            category: 'Longevity & Lifespan',
+            title: 'Atherogenic Risk (ApoB)',
+            value: `${b.apoB} mg/dL`,
+            status: b.apoB < 70 ? 'optimal' : b.apoB < 90 ? 'normal' : 'elevated',
+            interpretation,
+            implication,
+            evidence: 'ApoB is causal in atherosclerosis; lifetime exposure determines cardiovascular risk (Ference et al., European Heart Journal 2017)'
+        });
+    }
+
+    // Inflammation (CRP) - Links to aging and chronic disease
+    if (b.crp) {
+        let interpretation = '';
+        let implication = '';
+
+        if (b.crp < 0.5) {
+            interpretation = 'Minimal inflammation';
+            implication = 'Low systemic inflammation is strongly associated with healthy aging and longevity. This suggests your lifestyle and diet are supporting cellular health.';
+        } else if (b.crp < 1.0) {
+            interpretation = 'Low-normal inflammation';
+            implication = 'Good inflammatory status. To optimize: prioritize sleep quality, manage stress, consider anti-inflammatory foods (fatty fish, leafy greens, berries).';
+        } else if (b.crp < 3.0) {
+            interpretation = 'Moderate inflammation';
+            implication = 'Chronic low-grade inflammation accelerates aging and disease. Common causes: excess visceral fat, poor sleep, chronic stress, pro-inflammatory diet. Address root causes for healthspan.';
+        } else {
+            interpretation = 'Elevated inflammation';
+            implication = 'High CRP is associated with increased all-cause mortality. Rule out acute illness, then focus on weight loss (especially visceral fat), sleep optimization, and anti-inflammatory nutrition.';
+        }
+
+        insights.push({
+            category: 'Longevity & Lifespan',
+            title: 'Systemic Inflammation (hs-CRP)',
+            value: `${b.crp} mg/L`,
+            status: b.crp < 0.5 ? 'optimal' : b.crp < 1.0 ? 'normal' : 'elevated',
+            interpretation,
+            implication,
+            evidence: 'hs-CRP > 3 mg/L associated with 2x cardiovascular risk; inflammation is a hallmark of aging (Ridker et al., NEJM 2017)'
+        });
+    }
+
+    // === BODY COMPOSITION & LAB CORRELATION ===
+    if (latestDexa) {
+        // Visceral fat and metabolic health correlation
+        if (latestDexa.visceralFat !== null && latestDexa.visceralFat !== undefined) {
+            let interpretation = '';
+            let implication = '';
+
+            if (latestDexa.visceralFat < 52) {
+                interpretation = 'Healthy visceral fat level';
+                implication = 'Low visceral fat is strongly protective against metabolic disease. This likely contributes to your favorable lab markers. Visceral fat reduction is one of the most impactful interventions for longevity.';
+            } else if (latestDexa.visceralFat < 100) {
+                interpretation = 'Moderate visceral fat';
+                implication = 'Some visceral fat accumulation. This metabolically active fat releases inflammatory cytokines and can worsen insulin resistance. Zone 2 cardio is particularly effective for visceral fat reduction.';
+            } else {
+                interpretation = 'Elevated visceral fat';
+                implication = 'High visceral fat strongly correlates with metabolic dysfunction. It may be contributing to any elevated inflammation or insulin resistance markers. Prioritize this for healthspan improvement.';
+            }
+
+            // Check for lab correlations
+            let correlationNote = '';
+            if (b.crp && b.crp > 1 && latestDexa.visceralFat > 52) {
+                correlationNote = 'Note: Your elevated CRP may be partially explained by visceral fat, which produces inflammatory cytokines.';
+            }
+            if (b.insulin && b.insulin > 10 && latestDexa.visceralFat > 52) {
+                correlationNote += correlationNote ? ' ' : '';
+                correlationNote += 'Your insulin levels may improve as visceral fat decreases.';
+            }
+
+            insights.push({
+                category: 'Body Composition & Labs',
+                title: 'Visceral Fat Impact',
+                value: `${latestDexa.visceralFat.toFixed(1)} in³`,
+                status: latestDexa.visceralFat < 52 ? 'optimal' : latestDexa.visceralFat < 100 ? 'moderate' : 'elevated',
+                interpretation,
+                implication: implication + (correlationNote ? ' ' + correlationNote : ''),
+                evidence: 'Visceral adipose tissue is the primary driver of metabolic syndrome (Després, Nature 2006)'
+            });
+        }
+
+        // A/G Ratio and metabolic risk
+        if (latestDexa.agRatio !== null && latestDexa.agRatio !== undefined) {
+            let interpretation = '';
+            let implication = '';
+
+            if (latestDexa.agRatio < 1.0) {
+                interpretation = 'Favorable fat distribution';
+                implication = 'Lower abdominal fat relative to hip fat is associated with better metabolic health. This "pear shape" distribution is protective against cardiovascular disease.';
+            } else {
+                interpretation = 'Android fat pattern';
+                implication = 'Higher abdominal fat distribution (apple shape) is associated with greater metabolic risk independent of total body fat. Focus on overall fat loss and stress management (cortisol promotes abdominal fat storage).';
+            }
+
+            insights.push({
+                category: 'Body Composition & Labs',
+                title: 'Fat Distribution Pattern',
+                value: `A/G: ${latestDexa.agRatio.toFixed(2)}`,
+                status: latestDexa.agRatio < 1.0 ? 'optimal' : 'elevated',
+                interpretation,
+                implication,
+                evidence: 'Android/gynoid ratio predicts metabolic syndrome independent of BMI (Aucouturier et al., Obesity 2009)'
+            });
+        }
+    }
+
+    // === CGM-SPECIFIC INSIGHTS (if available) ===
+    if (hasGlucoseData) {
+        const avgGlucose = glucoseData.reduce((sum, d) => sum + d.glucose, 0) / glucoseData.length;
+        const estimatedA1c = (avgGlucose + 46.7) / 28.7;
+
+        if (b.hba1c) {
+            const diff = estimatedA1c - b.hba1c;
+            let interpretation = '';
+            let implication = '';
+
+            if (Math.abs(diff) < 0.3) {
+                interpretation = 'CGM and lab HbA1c align well';
+                implication = 'Your continuous glucose data accurately reflects your average glycemic control. This suggests consistent glucose patterns.';
+            } else if (diff > 0) {
+                interpretation = 'CGM suggests higher average than lab A1c';
+                implication = 'You may have better overnight glucose control than daytime. The CGM captures peaks that short-term tests miss. Focus on post-meal glucose management.';
+            } else {
+                interpretation = 'Lab A1c higher than CGM suggests';
+                implication = 'Your glucose may spike during times without CGM coverage, or there may be glycation variability. Consider wearing CGM during different activities.';
+            }
+
+            insights.push({
+                category: 'CGM & Lab Integration',
+                title: 'Estimated vs Lab HbA1c',
+                value: `eA1c: ${estimatedA1c.toFixed(1)}% vs Lab: ${b.hba1c}%`,
+                status: Math.abs(diff) < 0.3 ? 'aligned' : 'divergent',
+                interpretation,
+                implication,
+                evidence: 'GMI (estimated A1c) from CGM correlates r=0.95 with lab HbA1c (Bergenstal et al., Diabetes Care 2018)'
+            });
+        }
+    }
+
+    if (insights.length === 0) {
+        container.innerHTML = '<p class="no-data-message">Insufficient biomarker data for correlation insights</p>';
+        return;
+    }
+
+    // Group insights by category
+    const categories = {};
+    insights.forEach(i => {
+        if (!categories[i.category]) categories[i.category] = [];
+        categories[i.category].push(i);
+    });
+
     container.innerHTML = `
-        <div class="correlation-grid">
-            ${correlations.map(c => `
-                <div class="correlation-card">
-                    <h4>${c.title}</h4>
-                    <div class="correlation-values">
-                        <span class="cgm-value">${c.cgmValue}</span>
-                        <span class="lab-value">${c.labValue}</span>
+        <div class="insights-container">
+            ${Object.entries(categories).map(([category, categoryInsights]) => `
+                <div class="insight-category">
+                    <h4 class="category-title">${category}</h4>
+                    <div class="insights-list">
+                        ${categoryInsights.map(insight => `
+                            <div class="insight-card ${insight.status}">
+                                <div class="insight-header">
+                                    <span class="insight-title">${insight.title}</span>
+                                    <span class="insight-value">${insight.value}</span>
+                                </div>
+                                <div class="insight-interpretation">${insight.interpretation}</div>
+                                <div class="insight-implication">${insight.implication}</div>
+                                <div class="insight-evidence">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                                        <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                    </svg>
+                                    ${insight.evidence}
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
-                    <p class="correlation-interpretation">${c.interpretation}</p>
                 </div>
             `).join('')}
         </div>
