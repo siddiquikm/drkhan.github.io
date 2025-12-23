@@ -2321,71 +2321,95 @@ body {
     color: #ef4444;
 }
 
-.cv-risk-content {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+/* CV Risk List - Similar to Longevity Flags */
+.cv-risk-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-.cv-risk-card {
-    background: var(--bg-tertiary);
-    border-radius: var(--border-radius);
-    padding: 20px;
+.cv-risk-item {
+    padding: 16px;
+    border-radius: var(--border-radius-sm);
+    border-left: 4px solid;
+}
+
+.cv-risk-item.low {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-left-color: var(--success-color);
+}
+
+.cv-risk-item.moderate {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-left-color: var(--warning-color);
+}
+
+.cv-risk-item.high {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border-left-color: var(--danger-color);
+}
+
+.cv-risk-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .cv-risk-header {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 12px;
+    align-items: center;
+    gap: 10px;
 }
 
-.cv-risk-marker {
+.cv-risk-label {
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--text-primary);
 }
 
-.cv-risk-level {
-    padding: 4px 10px;
-    border-radius: 12px;
+.cv-risk-badge {
     font-size: 0.7rem;
     font-weight: 600;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 10px;
 }
 
-.cv-risk-level.low {
-    background: var(--success-light);
-    color: #065f46;
+.cv-risk-badge.low {
+    background: var(--success-color);
+    color: white;
 }
 
-.cv-risk-level.moderate {
-    background: var(--warning-light);
-    color: #92400e;
+.cv-risk-badge.moderate {
+    background: var(--warning-color);
+    color: #7c2d12;
 }
 
-.cv-risk-level.high {
-    background: var(--danger-light);
-    color: #991b1b;
+.cv-risk-badge.high {
+    background: var(--danger-color);
+    color: white;
 }
 
 .cv-risk-value {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 8px;
+    color: var(--success-color);
 }
 
-.cv-risk-optimal {
-    font-size: 0.8rem;
-    color: var(--text-muted);
+.cv-risk-item.moderate .cv-risk-value {
+    color: var(--warning-color);
 }
 
-.cv-risk-insight {
+.cv-risk-item.high .cv-risk-value {
+    color: var(--danger-color);
+}
+
+.cv-risk-interpretation {
     font-size: 0.85rem;
     color: var(--text-secondary);
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border-color);
+    background: rgba(255,255,255,0.6);
+    padding: 10px 12px;
+    border-radius: var(--border-radius-sm);
     line-height: 1.5;
 }
 

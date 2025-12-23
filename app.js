@@ -3219,13 +3219,17 @@ function renderCardiovascularRisk() {
     }
 
     container.innerHTML = `
-        <div class="cv-risk-grid">
+        <div class="cv-risk-list">
             ${risks.map(r => `
-                <div class="cv-risk-card ${r.risk}">
-                    <div class="risk-label">${r.label}</div>
-                    <div class="risk-value">${r.value}</div>
-                    <div class="risk-level ${r.risk}">${r.risk.charAt(0).toUpperCase() + r.risk.slice(1)} Risk</div>
-                    <div class="risk-interpretation">${r.interpretation}</div>
+                <div class="cv-risk-item ${r.risk}">
+                    <div class="cv-risk-content">
+                        <div class="cv-risk-header">
+                            <span class="cv-risk-label">${r.label}</span>
+                            <span class="cv-risk-badge ${r.risk}">${r.risk.charAt(0).toUpperCase() + r.risk.slice(1)} Risk</span>
+                        </div>
+                        <div class="cv-risk-value">${r.value}</div>
+                        <div class="cv-risk-interpretation">${r.interpretation}</div>
+                    </div>
                 </div>
             `).join('')}
         </div>
