@@ -1878,8 +1878,8 @@ body {
 /* NEW: Horizontal Score Components Layout */
 .score-components-horizontal {
     display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
+    flex-wrap: nowrap;
+    gap: 12px;
 }
 
 .score-components-horizontal .component-item {
@@ -1889,9 +1889,8 @@ body {
     background: var(--bg-tertiary);
     padding: 10px 14px;
     border-radius: var(--border-radius-sm);
-    flex: 1;
-    min-width: 180px;
-    max-width: 280px;
+    flex: 1 1 0;
+    min-width: 0;
 }
 
 .score-components-horizontal .component-icon {
@@ -1995,14 +1994,22 @@ body {
     color: var(--text-secondary);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
     .score-components-horizontal {
+        flex-wrap: wrap;
         gap: 10px;
     }
 
     .score-components-horizontal .component-item {
-        min-width: 150px;
+        flex: 1 1 calc(50% - 5px);
+        min-width: 140px;
         padding: 8px 10px;
+    }
+}
+
+@media (max-width: 500px) {
+    .score-components-horizontal .component-item {
+        flex: 1 1 100%;
     }
 }
 

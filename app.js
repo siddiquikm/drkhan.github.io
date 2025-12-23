@@ -3360,7 +3360,7 @@ function renderLongevityFlags() {
                 flag: 'Elevated A/G Ratio',
                 value: latestDexa.agRatio.toFixed(2),
                 severity: latestDexa.agRatio > 1.2 ? 'high' : 'moderate',
-                recommendation: 'Android fat pattern increases metabolic risk - focus on visceral fat reduction'
+                recommendation: 'Higher abdominal vs hip fat ratio - focus on core exercises, stress reduction, and quality sleep'
             });
         }
     }
