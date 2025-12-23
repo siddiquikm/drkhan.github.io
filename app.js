@@ -3671,110 +3671,118 @@ async function generateComprehensiveReport() {
     const hasWeightData = typeof weightData !== 'undefined' && weightData.length > 0;
     const weightChange = hasWeightData ? (weightData[weightData.length - 1].weight - weightData[0].weight).toFixed(1) : null;
 
-    // Build CGM Analysis section
+    // Build CGM Analysis section HTML
     let cgmSection = '';
     if (cgmMetrics) {
         const eA1c = ((cgmMetrics.avgGlucose + 46.7) / 28.7).toFixed(1);
         cgmSection = `
-            <div class="report-section">
-                <h2>CGM Analysis</h2>
-                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <div style="margin-bottom: 30px;">
+                <h2 style="color: #2d3748; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; font-size: 18px; margin: 0 0 15px 0;">CGM Analysis</h2>
+                <table style="width: 100%; border-collapse: collapse;">
                     <tr style="background: #f7fafc;">
-                        <td style="padding: 8px; border: 1px solid #e2e8f0;"><strong>Average Glucose</strong></td>
-                        <td style="padding: 8px; border: 1px solid #e2e8f0;">${cgmMetrics.avgGlucose?.toFixed(0) || 'N/A'} mg/dL</td>
-                        <td style="padding: 8px; border: 1px solid #e2e8f0;"><strong>Estimated A1c</strong></td>
-                        <td style="padding: 8px; border: 1px solid #e2e8f0;">${eA1c}%</td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0; width: 25%;"><strong>Average Glucose</strong></td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0; width: 25%;">${cgmMetrics.avgGlucose?.toFixed(0) || 'N/A'} mg/dL</td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0; width: 25%;"><strong>Estimated A1c</strong></td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0; width: 25%;">${eA1c}%</td>
                     </tr>
                     <tr>
-                        <td style="padding: 8px; border: 1px solid #e2e8f0;"><strong>Glucose Variability (CV)</strong></td>
-                        <td style="padding: 8px; border: 1px solid #e2e8f0;">${cgmMetrics.cv?.toFixed(1) || 'N/A'}%</td>
-                        <td style="padding: 8px; border: 1px solid #e2e8f0;"><strong>Time in Range (70-110)</strong></td>
-                        <td style="padding: 8px; border: 1px solid #e2e8f0;">${cgmMetrics.tirOptimal?.toFixed(0) || 'N/A'}%</td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0;"><strong>Glucose Variability</strong></td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0;">${cgmMetrics.cv?.toFixed(1) || 'N/A'}% CV</td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0;"><strong>Time in Range</strong></td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0;">${cgmMetrics.tirOptimal?.toFixed(0) || 'N/A'}% (70-110)</td>
                     </tr>
                     <tr style="background: #f7fafc;">
-                        <td style="padding: 8px; border: 1px solid #e2e8f0;"><strong>Fasting Glucose</strong></td>
-                        <td style="padding: 8px; border: 1px solid #e2e8f0;">${cgmMetrics.fasting ? cgmMetrics.fasting.toFixed(0) + ' mg/dL' : 'N/A'}</td>
-                        <td style="padding: 8px; border: 1px solid #e2e8f0;"><strong>Time Below Range (&lt;70)</strong></td>
-                        <td style="padding: 8px; border: 1px solid #e2e8f0;">${cgmMetrics.tirLow?.toFixed(1) || '0.0'}%</td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0;"><strong>Fasting Glucose</strong></td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0;">${cgmMetrics.fasting ? cgmMetrics.fasting.toFixed(0) + ' mg/dL' : 'N/A'}</td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0;"><strong>Time Low (&lt;70)</strong></td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0;">${cgmMetrics.tirLow?.toFixed(1) || '0.0'}%</td>
                     </tr>
                 </table>
-                ${hasWeightData ? `<p style="margin-top: 15px;"><strong>Weight Change:</strong> ${weightChange > 0 ? '+' : ''}${weightChange} lbs over tracking period</p>` : ''}
+                ${hasWeightData ? `<p style="margin-top: 15px; color: #4a5568;"><strong>Weight Change:</strong> ${weightChange > 0 ? '+' : ''}${weightChange} lbs over tracking period</p>` : ''}
             </div>
         `;
     }
 
+    // Create overlay to show loading state
+    const overlay = document.createElement('div');
+    overlay.id = 'pdf-generation-overlay';
+    overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 10000; display: flex; justify-content: center; align-items: flex-start; overflow: auto; padding: 20px;';
+
+    // Create report content container
     const reportContent = document.createElement('div');
-    reportContent.className = 'pdf-report';
-    reportContent.style.cssText = 'font-family: Arial, sans-serif; padding: 20px; max-width: 800px; background: white; color: #1a202c;';
+    reportContent.id = 'pdf-report-content';
+    reportContent.style.cssText = 'font-family: Arial, sans-serif; padding: 40px; max-width: 800px; width: 100%; background: white; color: #1a202c; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
 
     reportContent.innerHTML = `
-        <div style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px;">
-            <h1 style="color: #1a365d; margin: 0 0 10px 0; font-size: 24px;">Comprehensive Health Report</h1>
-            <p style="color: #718096; margin: 0;">Generated: ${new Date().toLocaleDateString()}</p>
+        <div style="text-align: center; border-bottom: 2px solid #1a365d; padding-bottom: 20px; margin-bottom: 30px;">
+            <h1 style="color: #1a365d; margin: 0 0 10px 0; font-size: 28px;">Comprehensive Health Report</h1>
+            <p style="color: #718096; margin: 0; font-size: 14px;">Generated: ${new Date().toLocaleDateString()}</p>
         </div>
 
         ${cgmSection}
 
         ${dexaData.length > 0 || labData.length > 0 ? `
-            <div class="report-section" style="margin-bottom: 30px;">
-                <h2 style="color: #2d3748; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; font-size: 18px;">Metabolic Health Score</h2>
-                ${document.getElementById('metabolicScoreContainer')?.innerHTML || '<p>No data available</p>'}
+            <div style="margin-bottom: 30px;">
+                <h2 style="color: #2d3748; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; font-size: 18px; margin: 0 0 15px 0;">Metabolic Health Score</h2>
+                <div>${document.getElementById('metabolicScoreContainer')?.innerHTML || '<p>No data available</p>'}</div>
             </div>
         ` : ''}
 
         ${dexaData.length > 0 ? `
-            <div class="report-section" style="margin-bottom: 30px; page-break-inside: avoid;">
-                <h2 style="color: #2d3748; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; font-size: 18px;">Body Composition Analysis</h2>
-                ${document.getElementById('bodyCompMetricsContainer')?.innerHTML || '<p>No DEXA data available</p>'}
+            <div style="margin-bottom: 30px;">
+                <h2 style="color: #2d3748; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; font-size: 18px; margin: 0 0 15px 0;">Body Composition Analysis</h2>
+                <div>${document.getElementById('bodyCompMetricsContainer')?.innerHTML || '<p>No DEXA data available</p>'}</div>
             </div>
         ` : ''}
 
         ${labData.length > 0 ? `
-            <div class="report-section" style="margin-bottom: 30px; page-break-inside: avoid;">
-                <h2 style="color: #2d3748; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; font-size: 18px;">Laboratory Biomarkers</h2>
-                ${document.getElementById('labBiomarkersContainer')?.innerHTML || '<p>No lab data available</p>'}
+            <div style="margin-bottom: 30px;">
+                <h2 style="color: #2d3748; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; font-size: 18px; margin: 0 0 15px 0;">Laboratory Biomarkers</h2>
+                <div>${document.getElementById('labBiomarkersContainer')?.innerHTML || '<p>No lab data available</p>'}</div>
             </div>
 
-            <div class="report-section" style="margin-bottom: 30px; page-break-inside: avoid;">
-                <h2 style="color: #2d3748; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; font-size: 18px;">Cardiovascular Risk Assessment</h2>
-                ${document.getElementById('cvRiskContainer')?.innerHTML || ''}
+            <div style="margin-bottom: 30px;">
+                <h2 style="color: #2d3748; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; font-size: 18px; margin: 0 0 15px 0;">Cardiovascular Risk Assessment</h2>
+                <div>${document.getElementById('cvRiskContainer')?.innerHTML || '<p>No cardiovascular risk data</p>'}</div>
             </div>
         ` : ''}
 
-        <div class="report-section" style="margin-bottom: 30px; page-break-inside: avoid;">
-            <h2 style="color: #2d3748; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; font-size: 18px;">Longevity Risk Flags & Recommendations</h2>
-            ${document.getElementById('longevityFlagsContainer')?.innerHTML || '<p>No risk flags identified</p>'}
+        <div style="margin-bottom: 30px;">
+            <h2 style="color: #2d3748; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; font-size: 18px; margin: 0 0 15px 0;">Longevity Risk Flags</h2>
+            <div>${document.getElementById('longevityFlagsContainer')?.innerHTML || '<p>No risk flags identified</p>'}</div>
         </div>
 
         ${hasCGMData ? `
-            <div class="report-section" style="margin-bottom: 30px; page-break-inside: avoid;">
-                <h2 style="color: #2d3748; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; font-size: 18px;">Metabolic Insights & Correlations</h2>
-                ${document.getElementById('cgmLabCorrelationContainer')?.innerHTML || ''}
+            <div style="margin-bottom: 30px;">
+                <h2 style="color: #2d3748; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; font-size: 18px; margin: 0 0 15px 0;">Metabolic Insights</h2>
+                <div>${document.getElementById('cgmLabCorrelationContainer')?.innerHTML || '<p>No correlation data</p>'}</div>
             </div>
         ` : ''}
 
-        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #718096; font-size: 12px;">
-            <p><em>This report is for informational purposes only and should not replace professional medical advice.</em></p>
-            <p>Report generated by Signos Physician Portal (Unofficial)</p>
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #e2e8f0; text-align: center; color: #718096; font-size: 11px;">
+            <p style="margin: 0 0 5px 0;"><em>This report is for informational purposes only and should not replace professional medical advice.</em></p>
+            <p style="margin: 0;">Report generated by Signos Physician Portal (Unofficial)</p>
         </div>
     `;
 
-    // Temporarily append to body for html2pdf to render properly
-    reportContent.style.position = 'absolute';
-    reportContent.style.left = '-9999px';
-    reportContent.style.top = '0';
-    document.body.appendChild(reportContent);
+    // Add to DOM
+    overlay.appendChild(reportContent);
+    document.body.appendChild(overlay);
 
-    // Generate PDF using html2pdf
+    // Wait a moment for DOM to render
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Generate PDF
     const opt = {
-        margin: [10, 10, 10, 10],
+        margin: [15, 15, 15, 15],
         filename: `health-report-${new Date().toISOString().split('T')[0]}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
             scale: 2,
             useCORS: true,
             logging: false,
-            backgroundColor: '#ffffff'
+            backgroundColor: '#ffffff',
+            windowWidth: 800
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
@@ -3787,8 +3795,8 @@ async function generateComprehensiveReport() {
         console.error('PDF generation error:', error);
         showNotification('Error generating report: ' + error.message, 'error');
     } finally {
-        // Clean up - remove the temporary element
-        document.body.removeChild(reportContent);
+        // Clean up - remove the overlay
+        document.body.removeChild(overlay);
     }
 }
 
