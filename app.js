@@ -3380,12 +3380,14 @@ function renderLongevityFlags() {
         <div class="longevity-flags-list">
             ${flags.map(f => `
                 <div class="longevity-flag ${f.severity}">
-                    <div class="flag-header">
-                        <span class="flag-category">${f.category}</span>
-                        <span class="flag-severity ${f.severity}">${f.severity}</span>
+                    <div class="flag-content">
+                        <div class="flag-header">
+                            <span class="flag-category">${f.category}</span>
+                            <span class="flag-severity ${f.severity}">${f.severity}</span>
+                        </div>
+                        <div class="flag-title">${f.flag}: ${f.value}</div>
+                        <div class="flag-recommendation">${f.recommendation}</div>
                     </div>
-                    <div class="flag-title">${f.flag}: ${f.value}</div>
-                    <div class="flag-recommendation">${f.recommendation}</div>
                 </div>
             `).join('')}
         </div>

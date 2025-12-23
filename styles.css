@@ -2405,11 +2405,28 @@ body {
 }
 
 .longevity-flag {
-    display: flex;
-    gap: 16px;
     padding: 16px;
     border-radius: var(--border-radius-sm);
-    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.longevity-flag:last-child {
+    margin-bottom: 0;
+}
+
+.longevity-flag.high {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border-left: 4px solid var(--danger-color);
+}
+
+.longevity-flag.moderate {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-left: 4px solid var(--warning-color);
+}
+
+.longevity-flag.low {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-left: 4px solid var(--success-color);
 }
 
 .longevity-flag.critical {
@@ -2438,29 +2455,61 @@ body {
 .flag-icon.positive { color: var(--success-color); }
 
 .flag-content {
-    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.flag-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.flag-category {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+}
+
+.flag-severity {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.flag-severity.high {
+    background: var(--danger-color);
+    color: white;
+}
+
+.flag-severity.moderate {
+    background: var(--warning-color);
+    color: #7c2d12;
+}
+
+.flag-severity.low {
+    background: var(--success-color);
+    color: white;
 }
 
 .flag-title {
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 4px;
-}
-
-.flag-description {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    line-height: 1.5;
-    margin-bottom: 8px;
 }
 
 .flag-recommendation {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: var(--text-secondary);
-    background: rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.6);
     padding: 10px 12px;
     border-radius: var(--border-radius-sm);
+    line-height: 1.5;
 }
 
 .flag-recommendation strong {
