@@ -2457,6 +2457,8 @@ function parseLabText(text, filename) {
         result.provider = 'Lab';
     }
 
+    console.log('Lab provider detected:', result.provider);
+
     // Extract date
     const datePatterns = [
         /(?:Collection Date|Collected|Date|Report Date)[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
@@ -2478,77 +2480,191 @@ function parseLabText(text, filename) {
         result.date = new Date().toISOString().split('T')[0];
     }
 
-    // Extract biomarkers with flexible patterns
-    const biomarkerPatterns = {
-        glucose: [
-            /(?:Glucose|Fasting Glucose|Blood Glucose)[,\s:]+(\d+\.?\d*)/i
-        ],
-        hba1c: [
-            /(?:Hemoglobin A1c|HbA1c|A1c|Hgb A1C)[,\s:]+(\d+\.?\d*)/i
-        ],
-        insulin: [
-            /(?:Insulin|Fasting Insulin)[,\s:]+(\d+\.?\d*)/i
-        ],
-        triglycerides: [
-            /(?:Triglycerides|Trigs|TG)[,\s:]+(\d+\.?\d*)/i
-        ],
-        hdl: [
-            /(?:HDL|HDL-C|HDL Cholesterol)[,\s:]+(\d+\.?\d*)/i
-        ],
-        ldl: [
-            /(?:LDL|LDL-C|LDL Cholesterol)[,\s:]+(\d+\.?\d*)/i
-        ],
-        totalCholesterol: [
-            /(?:Total Cholesterol|Cholesterol, Total)[,\s:]+(\d+\.?\d*)/i
-        ],
-        crp: [
-            /(?:C-Reactive Protein|CRP|hs-CRP|hsCRP)[,\s:]+(\d+\.?\d*)/i
-        ],
-        homocysteine: [
-            /(?:Homocysteine|Homocyst)[,\s:]+(\d+\.?\d*)/i
-        ],
-        vitaminD: [
-            /(?:Vitamin D|25-Hydroxy|25-OH)[,\s:]+(\d+\.?\d*)/i
-        ],
-        b12: [
-            /(?:Vitamin B12|B12|Cobalamin)[,\s:]+(\d+\.?\d*)/i
-        ],
-        ferritin: [
-            /(?:Ferritin)[,\s:]+(\d+\.?\d*)/i
-        ],
-        tsh: [
-            /(?:TSH|Thyroid Stimulating)[,\s:]+(\d+\.?\d*)/i
-        ],
-        alt: [
-            /(?:ALT|SGPT|Alanine Aminotransferase)[,\s:]+(\d+\.?\d*)/i
-        ],
-        ast: [
-            /(?:AST|SGOT|Aspartate Aminotransferase)[,\s:]+(\d+\.?\d*)/i
-        ],
-        ggt: [
-            /(?:GGT|Gamma GT|Gamma-Glutamyl)[,\s:]+(\d+\.?\d*)/i
-        ],
-        uricAcid: [
-            /(?:Uric Acid|Urate)[,\s:]+(\d+\.?\d*)/i
-        ],
-        apoB: [
-            /(?:Apolipoprotein B|ApoB|Apo B)[,\s:]+(\d+\.?\d*)/i
-        ],
-        lpA: [
-            /(?:Lipoprotein\(a\)|Lp\(a\)|LPA)[,\s:]+(\d+\.?\d*)/i
-        ]
-    };
-
-    for (const [key, patterns] of Object.entries(biomarkerPatterns)) {
+    // Helper function to extract numeric value from text near a keyword
+    // Handles tabular formats like "Glucose, Fasting    92    70-99 mg/dL"
+    function extractValue(text, patterns) {
         for (const pattern of patterns) {
             const match = text.match(pattern);
-            if (match) {
-                result.biomarkers[key] = parseFloat(match[1]);
-                break;
+            if (match && match[1]) {
+                const value = parseFloat(match[1]);
+                // Sanity check - ignore obviously wrong values
+                if (!isNaN(value) && value > 0) {
+                    console.log(`  Pattern matched: ${pattern} -> ${value}`);
+                    return value;
+                }
             }
+        }
+        return null;
+    }
+
+    // Biomarker extraction patterns - multiple patterns per biomarker
+    // Patterns handle: "Test Name   Value   Reference" tabular format
+    // and also "Test Name: Value" or "Test Name, Value" formats
+
+    const biomarkerDefs = {
+        glucose: {
+            patterns: [
+                // Labcorp tabular: "Glucose, Fasting    92    70-99"
+                /Glucose[,\s]+(?:Fasting)?[\s\S]{0,30}?(?<![\d.])(\d{2,3})(?!\d)(?=\s|mg|$)/i,
+                // "Glucose    92" with multiple spaces
+                /Glucose[\s]{2,}(\d{2,3})(?!\d)/i,
+                // Standard format
+                /(?:Glucose|Fasting Glucose|Blood Glucose)[:\s]+(\d{2,3})(?!\d)/i
+            ],
+            min: 40, max: 400  // Sanity check bounds
+        },
+        hba1c: {
+            patterns: [
+                // "Hemoglobin A1c    5.4    <5.7"
+                /Hemoglobin A1c[\s\S]{0,20}?(\d+\.?\d*)[\s]*%?/i,
+                /HbA1c[\s\S]{0,20}?(\d+\.?\d*)/i,
+                /Hgb A1[Cc][\s\S]{0,20}?(\d+\.?\d*)/i,
+                /A1[Cc][\s]{2,}(\d+\.?\d*)/i
+            ],
+            min: 3, max: 15
+        },
+        insulin: {
+            patterns: [
+                /Insulin[,\s]+(?:Fasting)?[\s\S]{0,30}?(\d+\.?\d*)/i,
+                /(?:Fasting\s+)?Insulin[\s]{2,}(\d+\.?\d*)/i
+            ],
+            min: 0.1, max: 100
+        },
+        triglycerides: {
+            patterns: [
+                /Triglycerides[\s\S]{0,30}?(?<![\d.])(\d{2,4})(?!\d)/i,
+                /Triglycerides[\s]{2,}(\d{2,4})/i
+            ],
+            min: 20, max: 1000
+        },
+        hdl: {
+            patterns: [
+                // Match "HDL Cholesterol    55" but NOT "Non-HDL"
+                /(?<!Non-)HDL[\s\-]?(?:Cholesterol|C)?[\s\S]{0,20}?(?<![\d.])(\d{2,3})(?!\d)/i,
+                /(?<!Non-)HDL[\s]{2,}(\d{2,3})/i
+            ],
+            min: 15, max: 150
+        },
+        ldl: {
+            patterns: [
+                // "LDL Cholesterol    110"
+                /LDL[\s\-]?(?:Cholesterol|C)?(?:\s*\([^)]*\))?[\s\S]{0,30}?(?<![\d.])(\d{2,3})(?!\d)/i,
+                /LDL[\s]{2,}(\d{2,3})/i
+            ],
+            min: 20, max: 400
+        },
+        totalCholesterol: {
+            patterns: [
+                /(?:Total\s+)?Cholesterol[,]?(?:\s+Total)?[\s\S]{0,20}?(?<![\d.])(\d{3})(?!\d)/i,
+                /Cholesterol[\s]{2,}(\d{3})/i
+            ],
+            min: 80, max: 500
+        },
+        crp: {
+            patterns: [
+                /(?:hs-?)?C-?Reactive Protein[\s\S]{0,30}?(\d+\.?\d*)/i,
+                /(?:hs)?CRP[\s\S]{0,20}?(\d+\.?\d*)/i,
+                /C-Reactive Prot[\s\S]{0,20}?(\d+\.?\d*)/i
+            ],
+            min: 0.01, max: 50
+        },
+        homocysteine: {
+            patterns: [
+                /Homocyst(?:e)?ine[\s\S]{0,30}?(\d+\.?\d*)/i
+            ],
+            min: 2, max: 50
+        },
+        vitaminD: {
+            patterns: [
+                /(?:Vitamin\s+D|25-?Hydroxy|25-?OH)[\s\S]{0,40}?(?<![\d.])(\d{1,3}\.?\d*)(?!\d)/i,
+                /Vit(?:amin)?\s*D[\s,]+(?:25)?[\s\S]{0,30}?(\d{1,3})/i
+            ],
+            min: 4, max: 200
+        },
+        b12: {
+            patterns: [
+                /(?:Vitamin\s+)?B[\s-]?12[\s\S]{0,30}?(?<![\d.])(\d{3,4})(?!\d)/i,
+                /Cobalamin[\s\S]{0,30}?(\d{3,4})/i
+            ],
+            min: 100, max: 2000
+        },
+        ferritin: {
+            patterns: [
+                /Ferritin[\s\S]{0,30}?(?<![\d.])(\d{1,4})(?!\d)/i
+            ],
+            min: 5, max: 1500
+        },
+        tsh: {
+            patterns: [
+                /TSH[\s\S]{0,30}?(\d+\.?\d*)/i,
+                /Thyroid Stimulating[\s\S]{0,40}?(\d+\.?\d*)/i
+            ],
+            min: 0.01, max: 20
+        },
+        alt: {
+            patterns: [
+                /ALT[\s\S]{0,30}?(?<![\d.])(\d{1,3})(?!\d)/i,
+                /Alanine Aminotransferase[\s\S]{0,40}?(\d{1,3})/i,
+                /SGPT[\s\S]{0,30}?(\d{1,3})/i
+            ],
+            min: 5, max: 500
+        },
+        ast: {
+            patterns: [
+                /AST[\s\S]{0,30}?(?<![\d.])(\d{1,3})(?!\d)/i,
+                /Aspartate Aminotransferase[\s\S]{0,40}?(\d{1,3})/i,
+                /SGOT[\s\S]{0,30}?(\d{1,3})/i
+            ],
+            min: 5, max: 500
+        },
+        ggt: {
+            patterns: [
+                /GGT[\s\S]{0,30}?(\d{1,3})/i,
+                /Gamma[\s\-]?(?:GT|Glutamyl)[\s\S]{0,40}?(\d{1,3})/i
+            ],
+            min: 5, max: 500
+        },
+        uricAcid: {
+            patterns: [
+                /Uric Acid[\s\S]{0,30}?(\d+\.?\d*)/i,
+                /Urate[\s\S]{0,30}?(\d+\.?\d*)/i
+            ],
+            min: 1, max: 15
+        },
+        apoB: {
+            patterns: [
+                /Apo(?:lipoprotein)?\s*B[\s\S]{0,30}?(?<![\d.])(\d{2,3})(?!\d)/i
+            ],
+            min: 30, max: 250
+        },
+        lpA: {
+            patterns: [
+                /Lp\s*\(?a\)?[\s\S]{0,30}?(\d+\.?\d*)/i,
+                /Lipoprotein[\s\-]?\(?a\)?[\s\S]{0,40}?(\d+\.?\d*)/i
+            ],
+            min: 0, max: 500
+        }
+    };
+
+    console.log('=== Starting biomarker extraction ===');
+
+    for (const [key, def] of Object.entries(biomarkerDefs)) {
+        console.log(`Looking for: ${key}`);
+        const value = extractValue(text, def.patterns);
+        if (value !== null) {
+            // Apply sanity check bounds
+            if (value >= def.min && value <= def.max) {
+                result.biomarkers[key] = value;
+                console.log(`  Found ${key}: ${value}`);
+            } else {
+                console.log(`  Value ${value} outside bounds [${def.min}, ${def.max}], skipping`);
+            }
+        } else {
+            console.log(`  Not found`);
         }
     }
 
+    console.log('=== Final biomarkers ===', result.biomarkers);
     return result;
 }
 
