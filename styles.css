@@ -2706,26 +2706,6 @@ body {
     }
 }
 
-/* Generate Report Section */
-.generate-report-section {
-    text-align: center;
-    padding: 32px;
-    background: linear-gradient(135deg, #ede9fe 0%, #dbeafe 100%);
-    border-radius: var(--border-radius);
-    margin-bottom: 24px;
-}
-
-.btn-large {
-    padding: 14px 32px;
-    font-size: 1rem;
-}
-
-.report-note {
-    margin-top: 12px;
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-}
-
 /* Responsive for DEXA/Lab */
 @media (max-width: 1200px) {
     .score-breakdown {
