@@ -3779,9 +3779,9 @@ async function generateComprehensiveReport() {
         `;
     }
 
-    // Create the report HTML
+    // Create the report HTML - NO centering, content starts at left edge
     const reportHTML = `
-        <div style="font-family: Arial, Helvetica, sans-serif; padding: 30px; max-width: 700px; margin: 0 auto; background-color: #ffffff; color: #1a202c;">
+        <div style="font-family: Arial, Helvetica, sans-serif; padding: 30px; width: 700px; background-color: #ffffff; color: #1a202c; position: absolute; left: 0; top: 0;">
             <div style="text-align: center; border-bottom: 3px solid #1a365d; padding-bottom: 15px; margin-bottom: 25px; background-color: #ffffff;">
                 <h1 style="color: #1a365d; margin: 0 0 8px 0; font-size: 24px;">Comprehensive Health Report</h1>
                 <p style="color: #718096; margin: 0; font-size: 12px;">Generated: ${new Date().toLocaleDateString()}</p>
@@ -3797,10 +3797,10 @@ async function generateComprehensiveReport() {
         </div>
     `;
 
-    // Create container
+    // Create container - position relative so child absolute positioning works
     const reportContainer = document.createElement('div');
     reportContainer.id = 'pdf-report-container';
-    reportContainer.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; z-index: 99999; overflow: auto;';
+    reportContainer.style.cssText = 'position: fixed; top: 0; left: 0; width: 800px; height: auto; background-color: #ffffff; z-index: 99999; overflow: visible;';
     reportContainer.innerHTML = reportHTML;
 
     document.body.appendChild(reportContainer);
