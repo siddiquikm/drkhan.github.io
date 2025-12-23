@@ -3822,7 +3822,7 @@ async function generateComprehensiveReport() {
     };
 
     try {
-        await html2pdf().set(opt).from(reportContainer.firstChild).save();
+        await html2pdf().set(opt).from(reportContainer.firstElementChild).save();
         showNotification('Report generated successfully!', 'success');
     } catch (error) {
         console.error('PDF generation error:', error);
