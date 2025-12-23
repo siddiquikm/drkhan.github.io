@@ -2487,32 +2487,64 @@ function parseLabText(text, filename) {
     if (isLabcorp) {
         console.log('Using Labcorp-specific parser...');
 
-        // Labcorp format: "TestName   A,   01   VALUE   PREV_VALUE   MM/DD/YYYY   Units   Reference"
-        // Key insight: Real results are followed by a date pattern (MM/DD/YYYY)
-        // This distinguishes them from "Ordered Items" list entries
+        // Labcorp format varies by test type:
+        // NMR tests: "TestName   A,   01   VALUE   PREV_VALUE   MM/DD/YYYY   Units"
+        // Other tests: "TestName   VALUE   Reference" or "TestName   A,   01   VALUE   Units"
 
-        // Helper: extract value from Labcorp result line (value followed by date)
-        function extractLabcorpValue(text, testPattern, valuePattern = '(\\d+\\.?\\d*)') {
-            // Pattern: TestName ... A, 01 VALUE [PREV] DATE
+        // Helper: extract value using multiple pattern strategies
+        function extractLabcorpValue(text, testPattern, valuePattern = '(\\d+\\.?\\d*)', bounds) {
+            // Strategy 1: Full pattern with date (most specific)
             const fullPattern = new RegExp(
                 testPattern + '\\s+(?:A,\\s+)?0?1?\\s+' + valuePattern + '\\s+(?:\\d+\\.?\\d*\\s+)?\\d{2}\\/\\d{2}\\/\\d{4}',
                 'i'
             );
-            const match = text.match(fullPattern);
+            let match = text.match(fullPattern);
             if (match && match[1]) {
-                console.log(`  Full pattern matched: ${fullPattern}`);
-                return parseFloat(match[1]);
+                const val = parseFloat(match[1]);
+                if (!isNaN(val) && val >= bounds.min && val <= bounds.max) {
+                    console.log(`  Strategy 1 (with date): ${val}`);
+                    return val;
+                }
             }
+
+            // Strategy 2: Test name followed by "A," or "01" marker then value, then units
+            const markerPattern = new RegExp(
+                testPattern + '\\s+(?:A,\\s+)?0?1\\s+' + valuePattern + '\\s+(?:\\d|<|>|[a-zA-Z])',
+                'i'
+            );
+            match = text.match(markerPattern);
+            if (match && match[1]) {
+                const val = parseFloat(match[1]);
+                if (!isNaN(val) && val >= bounds.min && val <= bounds.max) {
+                    console.log(`  Strategy 2 (with marker): ${val}`);
+                    return val;
+                }
+            }
+
+            // Strategy 3: Test name followed by value and units (for simpler format tests)
+            const simplePattern = new RegExp(
+                testPattern + '\\s+' + valuePattern + '\\s+(?:\\d|[a-zA-Z/<>])',
+                'i'
+            );
+            match = text.match(simplePattern);
+            if (match && match[1]) {
+                const val = parseFloat(match[1]);
+                if (!isNaN(val) && val >= bounds.min && val <= bounds.max) {
+                    console.log(`  Strategy 3 (simple): ${val}`);
+                    return val;
+                }
+            }
+
             return null;
         }
 
         const labcorpTests = {
-            // Glucose: "Glucose   A,   01   92   88   12/15/2025   mg/dL"
-            glucose: { pattern: 'Glucose', valuePattern: '(\\d{2,3})', min: 40, max: 400 },
-            // HbA1c: "Hemoglobin A1c   A,   01   5.4   5.2   12/15/2025"
-            hba1c: { pattern: 'Hemoglobin A1c', valuePattern: '(\\d+\\.?\\d*)', min: 3, max: 15 },
-            // Insulin: "Insulin   A,   01   5.2   4.8   12/15/2025"
-            insulin: { pattern: 'Insulin(?!\\s+Res)', valuePattern: '(\\d+\\.?\\d*)', min: 0.1, max: 100 },
+            // Glucose: may appear as "Glucose   92   70-99 mg/dL"
+            glucose: { pattern: 'Glucose(?!,)', valuePattern: '(\\d{2,3})', min: 40, max: 400 },
+            // HbA1c: "Hemoglobin A1c   5.4   <5.7 %"
+            hba1c: { pattern: 'Hemoglobin A1c', valuePattern: '(\\d+\\.\\d)', min: 3, max: 15 },
+            // Insulin: "Insulin   5.2   2.6-24.9"
+            insulin: { pattern: 'Insulin(?!\\s+Res)', valuePattern: '(\\d+\\.?\\d*)', min: 1, max: 100 },
             // Triglycerides
             triglycerides: { pattern: 'Triglycerides', valuePattern: '(\\d{2,4})', min: 20, max: 1000 },
             // HDL
@@ -2521,38 +2553,38 @@ function parseLabText(text, filename) {
             ldl: { pattern: 'LDL-?C?\\s*(?:\\([^)]*\\))?', valuePattern: '(\\d{2,3})', min: 20, max: 400 },
             // Total Cholesterol
             totalCholesterol: { pattern: 'Cholesterol,?\\s*Total', valuePattern: '(\\d{2,3})', min: 80, max: 500 },
-            // CRP
-            crp: { pattern: 'C-?Reactive Protein[,\\s]+(?:Cardiac\\s+)?', valuePattern: '<?([\\d.]+)', min: 0.01, max: 50 },
-            // Homocysteine
-            homocysteine: { pattern: 'Homocyst\\(?e?\\)?ine', valuePattern: '(\\d+\\.?\\d*)', min: 2, max: 50 },
-            // Vitamin D
-            vitaminD: { pattern: 'Vitamin D,?\\s*25-?Hydroxy', valuePattern: '(\\d{1,3}\\.?\\d*)', min: 4, max: 200 },
-            // B12
+            // CRP: "C-Reactive Protein, Cardiac   0.5   <1.0"
+            crp: { pattern: 'C-?Reactive Protein[,\\s]+(?:Cardiac)?', valuePattern: '<?([\\d.]+)', min: 0.1, max: 50 },
+            // Homocysteine: "Homocyst(e)ine   8.2   <10.4"
+            homocysteine: { pattern: 'Homocyst\\(?e?\\)?ine', valuePattern: '(\\d+\\.?\\d*)', min: 3, max: 50 },
+            // Vitamin D: "Vitamin D, 25-Hydroxy   45   30-100"
+            vitaminD: { pattern: 'Vitamin D,?\\s*25-?Hydroxy', valuePattern: '(\\d{1,3})', min: 4, max: 200 },
+            // B12: "Vitamin B12   650   232-1245"
             b12: { pattern: 'Vitamin B-?12', valuePattern: '[<>]?(\\d{3,4})', min: 100, max: 2000 },
-            // Ferritin
+            // Ferritin: "Ferritin   125   30-400"
             ferritin: { pattern: 'Ferritin', valuePattern: '(\\d{1,4})', min: 5, max: 1500 },
-            // TSH
-            tsh: { pattern: 'TSH(?!\\s+[A-Z])', valuePattern: '(\\d+\\.?\\d*)', min: 0.01, max: 20 },
+            // TSH: "TSH   1.5   0.45-4.5"
+            tsh: { pattern: 'TSH(?!\\s+[A-Z])', valuePattern: '(\\d+\\.?\\d*)', min: 0.1, max: 20 },
             // ALT
             alt: { pattern: 'ALT\\s*(?:\\(SGPT\\))?', valuePattern: '(\\d{1,3})', min: 5, max: 500 },
             // AST
             ast: { pattern: 'AST\\s*(?:\\(SGOT\\))?', valuePattern: '(\\d{1,3})', min: 5, max: 500 },
             // GGT
             ggt: { pattern: 'GGT', valuePattern: '(\\d{1,3})', min: 5, max: 500 },
-            // Uric Acid
-            uricAcid: { pattern: 'Uric Acid', valuePattern: '(\\d+\\.?\\d*)', min: 1, max: 15 },
+            // Uric Acid: "Uric Acid   5.2   3.4-7.0"
+            uricAcid: { pattern: 'Uric Acid', valuePattern: '(\\d+\\.?\\d*)', min: 2, max: 15 },
             // ApoB
             apoB: { pattern: 'Apo(?:lipoprotein)?\\s*B(?!\\s*\\/)', valuePattern: '(\\d{2,3})', min: 30, max: 250 },
             // Lp(a)
             lpA: { pattern: 'Lp\\s*\\(?a\\)?', valuePattern: '[<>]?(\\d+\\.?\\d*)', min: 0, max: 500 },
             // Free T4
-            freeT4: { pattern: '(?:Thyroxine|T4)[,\\s]+(?:\\(T4\\)\\s+)?Free[,\\s]+(?:Direct\\s+)?', valuePattern: '(\\d+\\.?\\d*)', min: 0.5, max: 3 },
+            freeT4: { pattern: '(?:Thyroxine|T4)[,\\s]+(?:\\(T4\\)\\s+)?Free', valuePattern: '(\\d+\\.?\\d*)', min: 0.5, max: 3 },
             // Free T3
             freeT3: { pattern: '(?:Triiodothyronine|T3)[,\\s]+(?:\\(T3\\)[,\\s]+)?Free', valuePattern: '(\\d+\\.?\\d*)', min: 1, max: 6 },
             // Cortisol
-            cortisol: { pattern: 'Cortisol', valuePattern: '(\\d+\\.?\\d*)', min: 1, max: 30 },
+            cortisol: { pattern: 'Cortisol', valuePattern: '(\\d+\\.?\\d*)', min: 2, max: 30 },
             // Testosterone
-            testosterone: { pattern: 'Testosterone(?!\\s+Free)', valuePattern: '[<>]?(\\d{2,4}\\.?\\d*)', min: 10, max: 1500 },
+            testosterone: { pattern: 'Testosterone(?!,?\\s+Free)', valuePattern: '[<>]?(\\d{2,4})', min: 50, max: 1500 },
             // Testosterone Free
             testosteroneFree: { pattern: 'Testosterone,?\\s+Free', valuePattern: '(\\d+\\.?\\d*)', min: 1, max: 50 },
             // Iron
@@ -2575,16 +2607,11 @@ function parseLabText(text, filename) {
 
         for (const [key, testDef] of Object.entries(labcorpTests)) {
             console.log(`Looking for: ${key}`);
-            const value = extractLabcorpValue(text, testDef.pattern, testDef.valuePattern);
+            const value = extractLabcorpValue(text, testDef.pattern, testDef.valuePattern, testDef);
 
             if (value !== null) {
-                console.log(`  Raw value: ${value}`);
-                if (!isNaN(value) && value >= testDef.min && value <= testDef.max) {
-                    result.biomarkers[key] = value;
-                    console.log(`  Found ${key}: ${value}`);
-                } else {
-                    console.log(`  Value ${value} outside bounds [${testDef.min}, ${testDef.max}], skipping`);
-                }
+                result.biomarkers[key] = value;
+                console.log(`  Found ${key}: ${value}`);
             } else {
                 console.log(`  Not found`);
             }

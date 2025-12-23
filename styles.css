@@ -1704,26 +1704,25 @@ body {
 .body-comp-status.elevated { color: var(--warning-color); }
 .body-comp-status.high { color: var(--danger-color); }
 
-/* NEW: Improved Metabolic Health Score UI */
+/* NEW: Improved Metabolic Health Score UI - Compact Layout */
 .metabolic-score-display {
     display: flex;
-    align-items: stretch;
-    gap: 32px;
+    align-items: center;
+    gap: 24px;
     flex-wrap: wrap;
 }
 
 .score-main {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 12px;
-    min-width: 140px;
+    gap: 16px;
 }
 
 .score-circle {
     position: relative;
-    width: 120px;
-    height: 120px;
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
 }
 
 .score-circle svg {
@@ -1735,13 +1734,12 @@ body {
 .score-circle-bg {
     fill: none;
     stroke: var(--border-color);
-    stroke-width: 8;
+    stroke-width: 6;
 }
 
 .score-circle-fill {
     fill: none;
-    stroke: url(#scoreGradient);
-    stroke-width: 8;
+    stroke-width: 6;
     stroke-linecap: round;
     transition: stroke-dasharray 0.8s ease;
 }
@@ -1761,31 +1759,32 @@ body {
 
 .score-circle-content .score-number {
     display: block;
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--text-primary);
     line-height: 1;
 }
 
 .score-circle-content .score-label {
-    font-size: 0.75rem;
+    font-size: 0.6rem;
     color: var(--text-muted);
 }
 
 .score-grade-info {
-    text-align: center;
+    text-align: left;
 }
 
 .score-grade {
     display: inline-block;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    width: 40px;
-    height: 40px;
-    line-height: 40px;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
     border-radius: 50%;
     color: white;
-    margin-bottom: 4px;
+    text-align: center;
+    margin-bottom: 2px;
 }
 
 .score-grade.grade-a { background: linear-gradient(135deg, #10b981, #34d399); }
@@ -1795,67 +1794,72 @@ body {
 
 .score-grade-label {
     display: block;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: var(--text-secondary);
     font-weight: 500;
 }
 
 .score-components {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    min-width: 280px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px;
+    min-width: 200px;
 }
 
 .component-card {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     background: var(--bg-tertiary);
-    padding: 12px 16px;
+    padding: 8px 12px;
     border-radius: var(--border-radius-sm);
 }
 
 .component-icon {
-    font-size: 1.25rem;
-    width: 36px;
-    height: 36px;
+    font-size: 1rem;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--bg-secondary);
-    border-radius: 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
 }
 
 .component-info {
     flex: 1;
+    min-width: 0;
 }
 
 .component-name {
     display: block;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: var(--text-secondary);
-    margin-bottom: 6px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .component-bar-container {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .component-bar {
     flex: 1;
-    height: 8px;
+    height: 6px;
     background: var(--border-color);
-    border-radius: 4px;
+    border-radius: 3px;
     overflow: hidden;
 }
 
 .component-bar-fill {
     height: 100%;
-    border-radius: 4px;
+    border-radius: 3px;
     transition: width 0.5s ease;
 }
 
@@ -1864,34 +1868,33 @@ body {
 .component-bar-fill.poor { background: linear-gradient(90deg, #ef4444, #f87171); }
 
 .component-score {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: 600;
     color: var(--text-primary);
-    min-width: 28px;
+    min-width: 24px;
     text-align: right;
 }
 
-/* NEW: Improved Body Composition UI */
+/* NEW: Improved Body Composition UI - Grid Layout */
 .body-comp-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 16px;
 }
 
 .provider-badge {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     background: var(--bg-tertiary);
-    padding: 8px 16px;
-    border-radius: 20px;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.85rem;
 }
 
 .provider-icon {
-    font-size: 1rem;
+    font-size: 0.9rem;
 }
 
 .provider-name {
@@ -1904,45 +1907,57 @@ body {
     align-items: center;
     gap: 6px;
     color: var(--text-secondary);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .date-icon {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .body-comp-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+@media (max-width: 768px) {
+    .body-comp-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .body-comp-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .body-comp-card {
     position: relative;
     background: var(--bg-secondary);
     border-radius: var(--border-radius);
+    border: 2px solid var(--accent-color, var(--border-color));
     overflow: hidden;
-    box-shadow: var(--shadow);
 }
 
 .body-comp-card .card-accent {
     position: absolute;
     top: 0;
     left: 0;
-    width: 4px;
-    height: 100%;
+    right: 0;
+    height: 3px;
     background: var(--accent-color, var(--dexa-color));
 }
 
 .body-comp-card .card-content {
-    padding: 16px 16px 16px 20px;
+    padding: 12px;
 }
 
 .body-comp-card .metric-header {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 4px;
 }
 
 .body-comp-card .metric-icon {
@@ -1950,39 +1965,40 @@ body {
 }
 
 .body-comp-card .metric-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    text-align: right;
 }
 
 .body-comp-card .metric-body {
     display: flex;
     align-items: baseline;
-    gap: 4px;
-    margin-bottom: 4px;
+    gap: 2px;
+    margin-bottom: 2px;
 }
 
 .body-comp-card .metric-value {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--text-primary);
 }
 
 .body-comp-card .metric-unit {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
 }
 
 .body-comp-card .metric-change {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.75rem;
+    gap: 3px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.7rem;
     font-weight: 600;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .body-comp-card .metric-change.change-good {
@@ -1996,7 +2012,7 @@ body {
 }
 
 .body-comp-card .metric-optimal {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: var(--text-muted);
 }
 
