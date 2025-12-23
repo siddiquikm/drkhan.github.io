@@ -2016,6 +2016,14 @@ body {
     margin: 0;
 }
 
+.footer-copyright .version-info {
+    margin-top: 8px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    opacity: 0.7;
+    font-family: monospace;
+}
+
 /* Legal Pages */
 .legal-content {
     background: white;
