@@ -742,18 +742,18 @@
                     </div>
                     <p class="section-description">Composite score based on insulin sensitivity, body composition, inflammation, and cardiovascular markers</p>
 
-                    <div class="score-breakdown" id="scoreBreakdown">
+                    <div class="score-breakdown" id="metabolicScoreContainer">
                         <!-- Populated by JavaScript -->
                     </div>
                 </section>
 
                 <!-- Body Composition Cards -->
-                <section class="body-comp-metrics-grid" id="bodyCompMetrics">
+                <section class="body-comp-metrics-grid" id="bodyCompMetricsContainer">
                     <!-- DEXA metrics cards - populated by JavaScript -->
                 </section>
 
                 <!-- Body Composition Trends (if multiple DEXA scans) -->
-                <section class="card dexa-trends-section hidden" id="dexaTrendsSection">
+                <section class="card dexa-trends-section hidden" id="dexaTrendsContainer">
                     <h3>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
@@ -781,7 +781,7 @@
                         </div>
                     </div>
 
-                    <div class="biomarker-categories" id="biomarkerCategories">
+                    <div class="biomarker-categories" id="labBiomarkersContainer">
                         <!-- Populated by JavaScript -->
                     </div>
                 </section>
@@ -794,7 +794,7 @@
                         </svg>
                         Cardiovascular Risk Assessment
                     </h3>
-                    <div class="cv-risk-content" id="cvRiskContent">
+                    <div class="cv-risk-content" id="cvRiskContainer">
                         <!-- Populated by JavaScript -->
                     </div>
                 </section>
@@ -809,7 +809,7 @@
                         </svg>
                         Longevity Risk Flags & Recommendations
                     </h3>
-                    <div class="longevity-flags-content" id="longevityFlagsContent">
+                    <div class="longevity-flags-content" id="longevityFlagsContainer">
                         <!-- Populated by JavaScript -->
                     </div>
                 </section>
@@ -825,7 +825,7 @@
                         CGM & Lab Data Correlation
                     </h3>
                     <p class="section-description">How your continuous glucose patterns relate to your lab biomarkers</p>
-                    <div class="correlation-insights" id="correlationInsights">
+                    <div class="correlation-insights" id="cgmLabCorrelationContainer">
                         <!-- Populated by JavaScript -->
                     </div>
                 </section>
@@ -872,7 +872,7 @@
             </div>
             <div class="footer-copyright">
                 <p>Signos® is a registered trademark of Signos, Inc.</p>
-                <p class="version-info">Version 2.0.0-beta | Build: 2025-12-23T15:00:00Z | Branch: claude/cgm-portal-requirements-ITM2F</p>
+                <p class="version-info">Version 2.0.1-beta | Build: 2025-12-23T16:00:00Z | Branch: claude/cgm-portal-requirements-ITM2F</p>
             </div>
         </footer>
     </div>
