@@ -734,6 +734,13 @@
                                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
                             </svg>
                             Metabolic Health Score
+                            <button class="info-btn" onclick="openModal('metabolicScoreInfoModal')" title="Learn about this score">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 16v-4"></path>
+                                    <path d="M12 8h.01"></path>
+                                </svg>
+                            </button>
                         </h3>
                         <div class="score-badge" id="metabolicScoreBadge">
                             <span class="score-value" id="metabolicScoreValue">--</span>
@@ -872,7 +879,7 @@
             </div>
             <div class="footer-copyright">
                 <p>Signos® is a registered trademark of Signos, Inc.</p>
-                <p class="version-info">Version 2.1.1-beta | Build: 2025-12-24T00:00:00Z | Branch: claude/cgm-portal-requirements-ITM2F</p>
+                <p class="version-info">Version 2.1.2-beta | Build: 2025-12-24T00:30:00Z | Branch: claude/cgm-portal-requirements-ITM2F</p>
             </div>
         </footer>
     </div>
@@ -1140,6 +1147,88 @@
                             <li>Consider patient's context (illness, travel, etc.)</li>
                         </ul>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metabolic Health Score Info Modal -->
+    <div id="metabolicScoreInfoModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('metabolicScoreInfoModal')">&times;</button>
+            <h2>Understanding Your Metabolic Health Score</h2>
+
+            <div class="score-explanation">
+                <p class="modal-intro">The Metabolic Health Score is a composite measure (0-100) that evaluates your overall metabolic function based on multiple biomarkers from your lab work and body composition data.</p>
+
+                <div class="score-ranges">
+                    <h3>Score Ranges</h3>
+                    <div class="range-item excellent">
+                        <span class="range-badge">85-100</span>
+                        <div class="range-info">
+                            <strong>Excellent (A)</strong>
+                            <p>Optimal metabolic health. Your biomarkers indicate excellent insulin sensitivity, healthy body composition, low inflammation, and low cardiovascular risk.</p>
+                        </div>
+                    </div>
+                    <div class="range-item good">
+                        <span class="range-badge">70-84</span>
+                        <div class="range-info">
+                            <strong>Good (B)</strong>
+                            <p>Above average metabolic health. Most markers are in healthy ranges with minor areas for improvement.</p>
+                        </div>
+                    </div>
+                    <div class="range-item average">
+                        <span class="range-badge">55-69</span>
+                        <div class="range-info">
+                            <strong>Average (C)</strong>
+                            <p>Moderate metabolic health. Some markers may be outside optimal ranges. Consider lifestyle modifications.</p>
+                        </div>
+                    </div>
+                    <div class="range-item needs-work">
+                        <span class="range-badge">0-54</span>
+                        <div class="range-info">
+                            <strong>Needs Improvement (D)</strong>
+                            <p>Multiple markers outside healthy ranges. Recommend discussing with healthcare provider and implementing lifestyle changes.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="components-section">
+                    <h3>Score Components</h3>
+                    <p>Your score is calculated from four key areas, each weighted equally:</p>
+
+                    <div class="component-explanations">
+                        <div class="component-explain">
+                            <h4>Insulin Sensitivity</h4>
+                            <p>Based on fasting glucose, HbA1c, fasting insulin, and HOMA-IR. Measures how effectively your body responds to insulin.</p>
+                        </div>
+                        <div class="component-explain">
+                            <h4>Body Composition</h4>
+                            <p>Based on body fat percentage, visceral fat, and android/gynoid ratio from DEXA scan. Evaluates fat distribution patterns.</p>
+                        </div>
+                        <div class="component-explain">
+                            <h4>Inflammation</h4>
+                            <p>Based on hs-CRP and homocysteine levels. Chronic inflammation is linked to metabolic dysfunction and disease risk.</p>
+                        </div>
+                        <div class="component-explain">
+                            <h4>Cardiovascular</h4>
+                            <p>Based on lipid panel (TG/HDL ratio, ApoB, Lp(a)) and other cardiac risk markers.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="learn-more-section">
+                    <h3>Learn More</h3>
+                    <p>The concept of metabolic health scoring is based on research around metabolic syndrome and cardiometabolic risk factors. Key references:</p>
+                    <ul class="reference-links">
+                        <li><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6723278/" target="_blank" rel="noopener noreferrer">Metabolic Syndrome Criteria and Definitions (NCBI)</a></li>
+                        <li><a href="https://www.ahajournals.org/doi/10.1161/CIRCULATIONAHA.109.192644" target="_blank" rel="noopener noreferrer">AHA/NHLBI Scientific Statement on Metabolic Syndrome</a></li>
+                        <li><a href="https://peterattiamd.com/category/metabolic-health/" target="_blank" rel="noopener noreferrer">Dr. Peter Attia's Metabolic Health Resources</a></li>
+                    </ul>
+                </div>
+
+                <div class="modal-disclaimer">
+                    <p><strong>Disclaimer:</strong> This score is for educational purposes only and should not replace professional medical advice. Always consult with your healthcare provider about your lab results and health status.</p>
                 </div>
             </div>
         </div>
