@@ -3431,11 +3431,12 @@ function renderCGMLabCorrelation() {
         let implication = '';
 
         const cvStatus = cgmMetrics.cv < 20 ? 'low' : cgmMetrics.cv < 33 ? 'moderate' : 'high';
-        const crpStatus = b.crp < 0.5 ? 'optimal' : b.crp < 1.0 ? 'low' : b.crp < 3.0 ? 'moderate' : 'high';
+        // CRP < 1.0 mg/L = low cardiovascular risk (optimal), 1.0-3.0 = moderate, > 3.0 = high
+        const crpStatus = b.crp < 1.0 ? 'optimal' : b.crp < 3.0 ? 'moderate' : 'high';
 
         if (cvStatus === 'low' && crpStatus === 'optimal') {
-            interpretation = 'Low oxidative stress profile';
-            implication = 'Your stable glucose patterns combined with low inflammation create an optimal environment for cellular health and longevity. Glucose swings trigger oxidative stress and inflammation - you\'re avoiding this cycle.';
+            interpretation = 'Excellent oxidative stress profile';
+            implication = 'Your stable glucose patterns (CV < 20%) combined with low inflammation (CRP < 1.0) create an optimal environment for cellular health and longevity. Glucose swings trigger oxidative stress and inflammation - you\'re avoiding this cycle. Maintain current lifestyle habits.';
         } else if (cvStatus !== 'low' && crpStatus !== 'optimal') {
             interpretation = 'Glucose variability may be driving inflammation';
             implication = 'Research shows glucose spikes generate reactive oxygen species and inflammatory cytokines. Your CRP elevation may be partially explained by glycemic variability. Reducing glucose swings through fiber, protein-first eating, and post-meal walks could lower inflammation.';
@@ -3443,8 +3444,9 @@ function renderCGMLabCorrelation() {
             interpretation = 'Glucose variability not yet affecting inflammation';
             implication = 'Your low CRP despite glucose swings suggests other protective factors (diet, exercise, sleep) are buffering inflammatory effects. Continue those habits while working to reduce glucose variability for long-term protection.';
         } else {
-            interpretation = 'Inflammation present with stable glucose';
-            implication = 'Your inflammation likely has other drivers (visceral fat, sleep, stress, diet quality) since glucose is well-controlled. Investigate other inflammatory sources.';
+            // cvStatus === 'low' && crpStatus !== 'optimal' (CRP >= 1.0)
+            interpretation = 'Inflammation from non-glucose sources';
+            implication = 'Your glucose is well-controlled, so inflammation likely has other drivers: chronic infections, autoimmune conditions, poor sleep quality, chronic stress, or dietary factors (omega-6/omega-3 imbalance, processed foods). Consider discussing with your physician.';
         }
 
         insights.push({
